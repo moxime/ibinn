@@ -117,7 +117,7 @@ def test(args):
     # I put these in the config at first, but they don't really take that long:
     eval_sample_generation = True
     eval_calibration = False
-    eval_test_acc = False
+    eval_test_acc = True
     eval_latent_pca_plot = False
 
     print('>> Plotting loss curves')
