@@ -15,6 +15,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from model import GenerativeClassifier
 import data
 
+
 def average_batch_norm(model, data, N_epochs=5):
     '''Make the batch norm statistics more accurate:
        iterate over the entire training set N_epochs times with fixed weights.
@@ -51,6 +52,7 @@ def average_batch_norm(model, data, N_epochs=5):
     progress_bar.close()
     print(f'\n>> Reset {instance_counter} instances of torch.nn.BatchNorm2d')
     model.eval()
+
 
 def average_batch_norm_vib(model, data, N_epochs=5):
     '''Make the batch norm statistics more accurate:
@@ -91,7 +93,7 @@ def val_plots(fname, model, data):
 
     y_digits = torch.zeros(n_classes_show * n_samples, n_classes).cuda()
     for i in range(n_classes_show):
-        y_digits[n_samples * i : n_samples * (i+1), i] = 1.
+        y_digits[n_samples * i: n_samples * (i+1), i] = 1.
 
     show_samples(model, data, y_digits)
     show_latent_space(model, data)
@@ -103,35 +105,35 @@ def val_plots(fname, model, data):
 
     plt.close('all')
 
+
 def test(args):
 
-    output_dir             = args['checkpoints']['output_dir']
-    model_fname            = os.path.join(output_dir, 'model.pt')
-    fig_fname              = os.path.join(output_dir, 'figs.pdf')
+    output_dir = args['checkpoints']['output_dir']
+    model_fname = os.path.join(output_dir, 'model.pt')
+    fig_fname = os.path.join(output_dir, 'figs.pdf')
 
-    vib_model              = eval(args['ablations']['vib'])
-    eval_ood_detection     = False and eval(args['evaluation']['ood'])
+    vib_model = eval(args['ablations']['vib'])
+    eval_ood_detection = eval(args['evaluation']['ood'])
     # I put these in the config at first, but they don't really take that long:
     eval_sample_generation = True
-    eval_calibration       = False
-    eval_test_acc          = False
-    eval_latent_pca_plot   = False
-
+    eval_calibration = False
+    eval_test_acc = False
+    eval_latent_pca_plot = False
 
     print('>> Plotting loss curves')
     try:
         try:
             losses = np.loadtxt(os.path.join(output_dir, 'losses.dat'),
-                            usecols = [0] + list(range(3,10)),
-                            skiprows = 1).T
+                                usecols=[0] + list(range(3, 10)),
+                                skiprows=1).T
         except OSError:
             losses = np.loadtxt(os.path.join(output_dir, 'losses.00.dat'),
-                        usecols = [0] + list(range(3,10)),
-                        skiprows = 1).T
+                                usecols=[0] + list(range(3, 10)),
+                                skiprows=1).T
 
         if losses is not None:
-            plt.figure(figsize=(8,12))
-            plt.subplot(2,1,1)
+            plt.figure(figsize=(8, 12))
+            plt.subplot(2, 1, 1)
             plt.plot(losses[0], losses[1], '--', color='red', label='$\mathcal{L}_X$ (train)')
             plt.plot(losses[0], losses[3], '--', color='blue', label='$\mathcal{L}_Y$ (train)')
             plt.plot(losses[0], losses[2], color='red', label='$\mathcal{L}_X$ (val)')
@@ -140,7 +142,7 @@ def test(args):
             plt.ylim(-5, 0)
             plt.legend()
 
-            plt.subplot(2,1,2)
+            plt.subplot(2, 1, 2)
             plt.plot(losses[0], 100 * (1. - losses[5]), '--', color='orange', label='err (val)')
             plt.plot(losses[0], 100 * (1. - losses[6]), color='orange', label='err (train)')
             plt.ylim([5, 50])
@@ -218,7 +220,7 @@ def test(args):
             n_classes = dataset.n_classes
             y_all_classes = torch.zeros(n_classes * n_samples, n_classes).cuda()
             for i in range(n_classes):
-                y_all_classes[n_samples * i : n_samples * (i+1), i] = 1.
+                y_all_classes[n_samples * i: n_samples * (i+1), i] = 1.
             show_samples(inn, dataset, y_all_classes)
             show_real_data(inn, dataset, y_all_classes)
 
@@ -239,7 +241,7 @@ def test(args):
             aucs['geo_mean'] = geo_mean
             aucs['ari_mean'] = ari_mean
 
-            for k,v in aucs.items():
+            for k, v in aucs.items():
                 aucs[k] = float(v)
 
             results_dict[test_type] = aucs
