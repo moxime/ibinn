@@ -12,7 +12,7 @@ matplotlib.use('Agg')
 def outlier_detection(inn_model, data, args, test_set=False):
     ''' the option `test_set` controls, whether the test set, or the validation set is used.'''
 
-    oodsets = ags['evaluation']['oodsets'].split()
+    oodsets = args['evaluation']['oodsets'].split()
 
     import ood_datasets.imagenet
     import ood_datasets.cifar
