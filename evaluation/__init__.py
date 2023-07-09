@@ -253,10 +253,10 @@ def test(args):
             fig.savefig(pp, format='pdf')
 
     # can only save latex tables etc. if all the quantitative experiments were run
+    output.to_json(results_dict, output_dir)
+    output.to_console(results_dict, output_dir)
     if eval_test_acc and eval_calibration and eval_ood_detection:
         print('>> Generating data output files')
-        output.to_json(results_dict, output_dir)
-        output.to_console(results_dict, output_dir)
         output.to_latex_table_row(results_dict, output_dir,
                                   name=args['checkpoints']['base_name'],
                                   italic_ood=False,
