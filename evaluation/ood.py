@@ -14,9 +14,9 @@ def outlier_detection(inn_model, data, args, test_set=False):
 
     oodsets = args['evaluation']['oodsets'].split()
 
-    import ood_datasets.imagenet
-    import ood_datasets.cifar
-    import ood_datasets.quickdraw
+    # import ood_datasets.imagenet
+    # import ood_datasets.cifar
+    # import ood_datasets.quickdraw
     import ood_datasets.svhn
 
     ensemble = int(args['evaluation']['ensemble_members'])
