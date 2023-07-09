@@ -116,7 +116,7 @@ def test(args):
     eval_ood_detection = eval(args['evaluation']['ood'])
     # I put these in the config at first, but they don't really take that long:
     eval_sample_generation = True
-    eval_calibration = False
+    eval_calibration = True
     eval_test_acc = True
     eval_latent_pca_plot = False
 
@@ -253,9 +253,9 @@ def test(args):
             fig.savefig(pp, format='pdf')
 
     # can only save latex tables etc. if all the quantitative experiments were run
-    output.to_json(results_dict, output_dir)
-    output.to_console(results_dict, output_dir)
     if eval_test_acc and eval_calibration and eval_ood_detection:
+        output.to_json(results_dict, output_dir)
+        output.to_console(results_dict, output_dir)
         print('>> Generating data output files')
         output.to_latex_table_row(results_dict, output_dir,
                                   name=args['checkpoints']['base_name'],
