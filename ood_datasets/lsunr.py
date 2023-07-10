@@ -81,7 +81,7 @@ class Dataset():
         self.n_classes = 10
         dataset_class = torchvision.datasets.LSUN
 
-        self.test_data = dataset_class(data_dir, classes='val', download=False,
+        self.test_data = dataset_class(data_dir, classes='val',
                                        transform=T.Compose([T.ToTensor(),
                                                             T.CenterCrop(256),
                                                             T.Resize(32),
