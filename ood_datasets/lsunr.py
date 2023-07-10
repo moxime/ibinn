@@ -81,8 +81,11 @@ class Dataset():
         self.n_classes = 10
         dataset_class = torchvision.datasets.LSUN
 
-        self.test_data = dataset_class(data_dir, split='val', download=False,
-                                       transform=T.Compose([T.ToTensor(), self.test_augmentor]))
+        self.test_data = dataset_class(data_dir, classes='val', download=False,
+                                       transform=T.Compose([T.ToTensor(),
+                                                            T.CenterCrop(256),
+                                                            T.Resize(32),
+                                                            self.test_augmentor]))
 
         self.test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False,
                                       num_workers=2, pin_memory=True, drop_last=True)
