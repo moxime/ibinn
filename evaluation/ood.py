@@ -18,6 +18,7 @@ def outlier_detection(inn_model, data, args, test_set=False):
     # import ood_datasets.cifar
     # import ood_datasets.quickdraw
     import ood_datasets.svhn
+    import ood_datasets.lsunr
 
     ensemble = int(args['evaluation']['ensemble_members'])
     inn_ensemble = [inn_model]
@@ -54,7 +55,7 @@ def outlier_detection(inn_model, data, args, test_set=False):
     quantile_resolution = 32
     quantile_steps = np.concatenate([np.linspace(0.0, 0.1, num=quantile_resolution, endpoint=False),
                                      np.linspace(0.1, 0.9, num=quantile_resolution, endpoint=False),
-                                     np.linspace(0.9, 1.0, num=quantile_resolution+1, endpoint=True)])
+                                     np.linspace(0.9, 1.0, num=quantile_resolution + 1, endpoint=True)])
 
     scores_all = {}
     entrop_all = {}
@@ -73,6 +74,9 @@ def outlier_detection(inn_model, data, args, test_set=False):
 
     if 'svhn' in oodsets:
         generators.append((ood_datasets.svhn.svhn(inn_model.args), 'SVHN'))
+
+    if 'lsunr' in oodsets:
+        generators.append((ood_datasets.lsunr.lsunr(inn_model.args), 'LSUNR'))
 
     for gen, label in generators:
         print(f'>> Computing OoD score for {label}')
@@ -116,8 +120,8 @@ def outlier_detection(inn_model, data, args, test_set=False):
 
         roc = []
         for i in range(len(quantile_steps) // 2):
-            fpr = (quantile_steps[i] + 1. - quantile_steps[-(1+i)])
-            tpr = np.mean(np.logical_or(test_scores < train_quantiles[i], test_scores > train_quantiles[-(i+1)]))
+            fpr = (quantile_steps[i] + 1. - quantile_steps[-(1 + i)])
+            tpr = np.mean(np.logical_or(test_scores < train_quantiles[i], test_scores > train_quantiles[-(i + 1)]))
             roc.append((fpr, tpr))
         roc.append((1., 1.))
 
