@@ -1,0 +1,3 @@
+((nil
+  (pyvenv-workon . "ibinn")
+))
