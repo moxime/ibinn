@@ -11,24 +11,25 @@ from model import GenerativeClassifier
 from VIB import WrapperVIB
 import evaluation
 
+
 def train(args):
 
-    N_epochs            = eval(args['training']['n_epochs'])
-    beta                = eval(args['training']['beta_IB'])
-    train_nll           = bool(not eval(args['ablations']['no_NLL_term']))
-    train_class_nll     = eval(args['ablations']['class_NLL'])
-    label_smoothing     = eval(args['data']['label_smoothing'])
-    grad_clip           = eval(args['training']['clip_grad_norm'])
-    train_vib           = eval(args['ablations']['vib'])
+    N_epochs = eval(args['training']['n_epochs'])
+    beta = eval(args['training']['beta_IB'])
+    train_nll = bool(not eval(args['ablations']['no_NLL_term']))
+    train_class_nll = eval(args['ablations']['class_NLL'])
+    label_smoothing = eval(args['data']['label_smoothing'])
+    grad_clip = eval(args['training']['clip_grad_norm'])
+    train_vib = eval(args['ablations']['vib'])
 
-    interval_log        = eval(args['checkpoints']['interval_log'])
+    interval_log = eval(args['checkpoints']['interval_log'])
     interval_checkpoint = eval(args['checkpoints']['interval_checkpoint'])
-    interval_figure     = eval(args['checkpoints']['interval_figure'])
-    save_on_crash       = eval(args['checkpoints']['checkpoint_when_crash'])
+    interval_figure = eval(args['checkpoints']['interval_figure'])
+    save_on_crash = eval(args['checkpoints']['checkpoint_when_crash'])
 
-    output_dir          = args['checkpoints']['output_dir']
-    resume              = args['checkpoints']['resume_checkpoint']
-    ensemble_index      = eval(args['checkpoints']['ensemble_index'])
+    output_dir = args['checkpoints']['output_dir']
+    resume = args['checkpoints']['resume_checkpoint']
+    ensemble_index = eval(args['checkpoints']['ensemble_index'])
 
     if ensemble_index is None:
         ensemble_str = ''
@@ -60,7 +61,7 @@ def train(args):
                     'delta_mu_val']
 
     train_loss_names = [l for l in plot_columns if l[-3:] == '_tr']
-    val_loss_names   = [l for l in plot_columns if l[-4:] == '_val']
+    val_loss_names = [l for l in plot_columns if l[-4:] == '_val']
 
     header_fmt = '{:>15}' * len(plot_columns)
     output_fmt = '{:15.1f}      {:04d}/{:04d}      {:04d}/{:04d}' + '{:15.5f}' * (len(plot_columns) - 3)
@@ -73,11 +74,11 @@ def train(args):
 
     if eval(args['training']['exponential_scheduler']):
         print('Using exponential scheduler')
-        sched = torch.optim.lr_scheduler.StepLR(inn.optimizer, gamma=0.002 ** (1/N_epochs), step_size=1)
+        sched = torch.optim.lr_scheduler.StepLR(inn.optimizer, gamma=0.002 ** (1 / N_epochs), step_size=1)
     else:
         print('Using milestone scheduler')
         sched = torch.optim.lr_scheduler.MultiStepLR(inn.optimizer, gamma=0.1,
-                                                 milestones=eval(args['training']['scheduler_milestones']))
+                                                     milestones=eval(args['training']['scheduler_milestones']))
 
     log_write(header_fmt.format(*plot_columns))
 
@@ -95,7 +96,7 @@ def train(args):
         for i_epoch in range(N_epochs):
             running_avg = {l: [] for l in train_loss_names}
 
-            for i_batch, (x,l) in enumerate(dataset.train_loader):
+            for i_batch, (x, l) in enumerate(dataset.train_loader):
 
                 x, y = x.cuda(), dataset.onehot(l.cuda(), label_smoothing)
                 losses = inn(x, y)
@@ -112,10 +113,10 @@ def train(args):
 
                 if live_loss:
                     print(output_fmt_live.format(*([(time() - t_start) / 60.,
-                                              i_epoch, N_epochs,
-                                              i_batch, len(dataset.train_loader)]
-                                             + [losses[l].item() for l in train_loss_names])),
-                      flush=True, end='\r')
+                                                    i_epoch, N_epochs,
+                                                    i_batch, len(dataset.train_loader)]
+                                                   + [losses[l].item() for l in train_loss_names])),
+                          flush=True, end='\r')
 
                 for l_name in train_loss_names:
                     running_avg[l_name].append(losses[l_name].item())
@@ -133,7 +134,7 @@ def train(args):
                                       i_batch, len(dataset.train_loader)]
 
                     losses_display += [running_avg[l] for l in plot_columns[3:]]
-                    #TODO visdom?
+                    # TODO visdom?
                     log_write(output_fmt.format(*losses_display))
                     running_avg = {l: [] for l in train_loss_names}
 
