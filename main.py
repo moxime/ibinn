@@ -20,7 +20,7 @@ output_base_dir = args['checkpoints']['global_output_folder']
 output_dir = os.path.join(output_base_dir, args['checkpoints']['base_name'])
 args['checkpoints']['output_dir'] = output_dir
 wim_output_dir = os.path.join(output_dir, 'wim')
-args['checkpints']['wim_output_dir'] = wim_output_dir
+args['checkpoints']['wim_output_dir'] = wim_output_dir
 
 os.makedirs(output_dir, exist_ok=True)
 os.makedirs(wim_output_dir, exist_ok=True)
