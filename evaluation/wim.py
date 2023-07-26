@@ -27,7 +27,7 @@ def wim_train(args):
     save_on_crash = eval(args['checkpoints']['checkpoint_when_crash'])
 
     output_dir = args['checkpoints']['wim_output_dir']
-    resume_dir = args['checkpoint']['output_dir']
+    resume_dir = args['checkpoints']['output_dir']
 
     logfile = open(join(output_dir, 'losses.dat'), 'w')
     live_loss = eval(args['checkpoints']['live_updates'])
