@@ -19,7 +19,11 @@ if len(sys.argv) == 3:
 output_base_dir = args['checkpoints']['global_output_folder']
 output_dir = os.path.join(output_base_dir, args['checkpoints']['base_name'])
 args['checkpoints']['output_dir'] = output_dir
+wim_output_dir = os.path.join(output_dir, 'wim')
+args['checkpints']['wim_output_dir'] = wim_output_dir
+
 os.makedirs(output_dir, exist_ok=True)
+os.makedirs(wim_output_dir, exist_ok=True)
 
 with open(os.path.join(output_dir, 'conf.ini'), 'w') as f:
     args.write(f)
@@ -30,6 +34,15 @@ if mode == 'train':
 elif mode == 'test':
     import evaluation
     evaluation.test(args)
+
+elif mode == 'wim':
+    import evaluation
+    if not os.path.exists(os.path.join(wim_output_dir, 'model.pt')):
+        evaluation.wim.wim_train(args)
+
+    args['checkpoints']['output_dir'] = wim_output_dir
+    evaluation.test(args)
+
 elif mode == 'generate':
     import evaluation.generation
     evaluation.generation.main(args)

@@ -9,25 +9,26 @@ import inn_architecture
 import feed_forward_architecture
 import data
 
+
 class GenerativeClassifier(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.args = args
 
-        init_latent_scale        = eval(self.args['model']['mu_init'])
-        weight_init              = eval(self.args['model']['weight_init'])
-        self.dataset             = self.args['data']['dataset']
-        self.ch_pad              = eval(self.args['data']['pad_noise_channels'])
-        self.feed_forward        = eval(self.args['ablations']['feed_forward_resnet'])
+        init_latent_scale = eval(self.args['model']['mu_init'])
+        weight_init = eval(self.args['model']['weight_init'])
+        self.dataset = self.args['data']['dataset']
+        self.ch_pad = eval(self.args['data']['pad_noise_channels'])
+        self.feed_forward = eval(self.args['ablations']['feed_forward_resnet'])
         self.feed_forward_revnet = eval(self.args['ablations']['feed_forward_irevnet'])
 
         if self.dataset == 'MNIST':
-            self.dims  = (28, 28)
+            self.dims = (28, 28)
             self.input_channels = 1
             self.ndim_tot = int(np.prod(self.dims))
             self.n_classes = 10
         elif self.dataset in ['CIFAR10', 'CIFAR100']:
-            self.dims  = (3 + self.ch_pad, 32, 32)
+            self.dims = (3 + self.ch_pad, 32, 32)
             self.input_channels = 3 + self.ch_pad
             self.ndim_tot = int(np.prod(self.dims))
             if self.dataset == 'CIFAR10':
@@ -51,14 +52,14 @@ class GenerativeClassifier(nn.Module):
         self.mu_empirical = eval(self.args['training']['empirical_mu'])
 
         for k in range(mu_populate_dims // self.n_classes):
-            self.mu.data[0, :, self.n_classes * k : self.n_classes * (k+1)] = init_scale * torch.eye(self.n_classes)
+            self.mu.data[0, :, self.n_classes * k: self.n_classes * (k+1)] = init_scale * torch.eye(self.n_classes)
 
         self.phi = nn.Parameter(torch.zeros(self.n_classes))
 
         self.trainable_params = list(self.inn.parameters())
         self.trainable_params = list(filter(lambda p: p.requires_grad, self.trainable_params))
 
-        self.train_mu  = eval(self.args['training']['train_mu'])
+        self.train_mu = eval(self.args['training']['train_mu'])
         self.train_phi = eval(self.args['training']['train_mu'])
         self.train_inn = True
 
@@ -70,7 +71,7 @@ class GenerativeClassifier(nn.Module):
         self.trainable_params += [self.mu, self.phi]
         base_lr = float(self.args['training']['lr'])
 
-        optimizer_params = [ {'params':list(filter(lambda p: p.requires_grad, self.inn.parameters()))},]
+        optimizer_params = [{'params': list(filter(lambda p: p.requires_grad, self.inn.parameters()))}, ]
 
         if self.train_mu:
             optimizer_params.append({'params': [self.mu],
@@ -96,8 +97,8 @@ class GenerativeClassifier(nn.Module):
 
         if optimizer == 'SGD':
             self.optimizer = torch.optim.SGD(optimizer_params, base_lr,
-                                              momentum=float(self.args['training']['sgd_momentum']),
-                                              weight_decay=float(self.args['training']['weight_decay']))
+                                             momentum=float(self.args['training']['sgd_momentum']),
+                                             weight_decay=float(self.args['training']['weight_decay']))
         elif optimizer == 'ADAM':
             self.optimizer = torch.optim.Adam(optimizer_params, base_lr,
                                               betas=eval(self.args['training']['adam_betas']),
@@ -105,12 +106,12 @@ class GenerativeClassifier(nn.Module):
         elif optimizer == 'AGGMO':
             import aggmo
             self.optimizer = aggmo.AggMo(optimizer_params, base_lr,
-                                              betas=eval(self.args['training']['aggmo_betas']),
-                                              weight_decay=float(self.args['training']['weight_decay']))
+                                         betas=eval(self.args['training']['aggmo_betas']),
+                                         weight_decay=float(self.args['training']['weight_decay']))
         else:
             raise ValueError(f'what is this optimizer, {optimizer}?')
 
-    def cluster_distances(self, z, y=None):
+    def cluster_distances(self, z, y=None, wim=False):
 
         if y is not None:
             mu = torch.mm(z.t().detach(), y.round())
@@ -120,8 +121,12 @@ class GenerativeClassifier(nn.Module):
             self.mu.data = mu.data
 
         z_i_z_i = torch.sum(z**2, dim=1, keepdim=True)   # batchsize x n_classes
-        mu_j_mu_j = torch.sum(self.mu**2, dim=2)         # 1 x n_classes
-        z_i_mu_j = torch.mm(z, self.mu.squeeze().t())    # batchsize x n_classes
+        if not wim:
+            mu_j_mu_j = torch.sum(self.mu**2, dim=2)         # 1 x n_classes
+            z_i_mu_j = torch.mm(z, self.mu.squeeze().t())    # batchsize x n_classes
+        else:
+            mu_j_mu_j = 0
+            z_i_mu_j = 0
 
         return -2 * z_i_mu_j + z_i_z_i + mu_j_mu_j
 
@@ -130,10 +135,10 @@ class GenerativeClassifier(nn.Module):
         mu_i_mu_j = self.mu.squeeze().mm(self.mu.squeeze().t())
         mu_i_mu_i = torch.sum(self.mu.squeeze()**2, 1, keepdim=True).expand(self.n_classes, self.n_classes)
 
-        dist =  mu_i_mu_i + mu_i_mu_i.t() - 2 * mu_i_mu_j
+        dist = mu_i_mu_i + mu_i_mu_i.t() - 2 * mu_i_mu_j
         return torch.masked_select(dist, (1 - torch.eye(self.n_classes).cuda()).bool()).clamp(min=0.)
 
-    def forward(self, x, y=None, loss_mean=True):
+    def forward(self, x, y=None, loss_mean=True, wim=False):
 
         if self.feed_forward:
             return self.losses_feed_forward(x, y, loss_mean)
@@ -144,11 +149,11 @@ class GenerativeClassifier(nn.Module):
         log_wy = torch.log_softmax(self.phi, dim=0).view(1, -1)
 
         if self.mu_empirical and y is not None and self.inn.training:
-            zz = self.cluster_distances(z, y)
+            zz = self.cluster_distances(z, y, wim=wim)
         else:
-            zz = self.cluster_distances(z)
+            zz = self.cluster_distances(z, wim=wim)
 
-        losses = {'L_x_tr':    (- torch.logsumexp(- 0.5 * zz + log_wy, dim=1) - jac ) / self.ndim_tot,
+        losses = {'L_x_tr':    (- torch.logsumexp(- 0.5 * zz + log_wy, dim=1) - jac) / self.ndim_tot,
                   'logits_tr': - 0.5 * zz}
 
         log_wy = log_wy.detach()
@@ -156,10 +161,10 @@ class GenerativeClassifier(nn.Module):
             losses['L_cNLL_tr'] = (0.5 * torch.sum(zz * y.round(), dim=1) - jac) / self.ndim_tot
             losses['L_y_tr'] = torch.sum((torch.log_softmax(- 0.5 * zz + log_wy, dim=1) - log_wy) * y, dim=1)
             losses['acc_tr'] = torch.mean((torch.max(y, dim=1)[1]
-                                        == torch.max(losses['logits_tr'].detach(), dim=1)[1]).float())
+                                           == torch.max(losses['logits_tr'].detach(), dim=1)[1]).float())
 
         if loss_mean:
-            for k,v in losses.items():
+            for k, v in losses.items():
                 losses[k] = torch.mean(v)
 
         return losses
@@ -168,18 +173,18 @@ class GenerativeClassifier(nn.Module):
         logits = self.inn(x)
 
         losses = {'logits_tr': logits,
-                  'L_x_tr': torch.zeros_like(logits[:,0])}
+                  'L_x_tr': torch.zeros_like(logits[:, 0])}
 
         if y is not None:
-            ly =  torch.sum(torch.log_softmax(logits, dim=1) * y, dim=1)
+            ly = torch.sum(torch.log_softmax(logits, dim=1) * y, dim=1)
             acc = torch.mean((torch.max(y, dim=1)[1]
-                           == torch.max(logits.detach(), dim=1)[1]).float())
+                              == torch.max(logits.detach(), dim=1)[1]).float())
             losses['L_y_tr'] = ly
             losses['acc_tr'] = acc
             losses['L_cNLL_tr'] = torch.zeros_like(ly)
 
         if loss_mean:
-            for k,v in losses.items():
+            for k, v in losses.items():
                 losses[k] = torch.mean(v)
 
         return losses
@@ -226,7 +231,7 @@ class GenerativeClassifier(nn.Module):
                 print(counter, end='\r')
 
             mu /= counter
-        self.mu.data  = mu.data
+        self.mu.data = mu.data
         print()
 
     def sample(self, y, temperature=1., temperature_class=1.):
@@ -242,7 +247,7 @@ class GenerativeClassifier(nn.Module):
 
     def load(self, fname):
         data = torch.load(fname)
-        data['inn'] = {k:v for k,v in data['inn'].items() if 'tmp_var' not in k}
+        data['inn'] = {k: v for k, v in data['inn'].items() if 'tmp_var' not in k}
         self.inn.load_state_dict(data['inn'])
         self.mu.data.copy_(data['mu'].data)
         self.phi.data.copy_(data['phi'].data)

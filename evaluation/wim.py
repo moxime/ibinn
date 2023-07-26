@@ -12,39 +12,32 @@ from VIB import WrapperVIB
 import evaluation
 
 
-def train(args):
+def wim_train(args):
 
-    N_epochs = eval(args['training']['n_epochs'])
+    N_epochs = eval(args['wim']['n_epochs'])
     beta = eval(args['training']['beta_IB'])
     train_nll = bool(not eval(args['ablations']['no_NLL_term']))
     train_class_nll = eval(args['ablations']['class_NLL'])
     label_smoothing = eval(args['data']['label_smoothing'])
     grad_clip = eval(args['training']['clip_grad_norm'])
-    train_vib = eval(args['ablations']['vib'])
 
     interval_log = eval(args['checkpoints']['interval_log'])
     interval_checkpoint = eval(args['checkpoints']['interval_checkpoint'])
     interval_figure = eval(args['checkpoints']['interval_figure'])
     save_on_crash = eval(args['checkpoints']['checkpoint_when_crash'])
 
-    output_dir = args['checkpoints']['output_dir']
-    resume = args['checkpoints']['resume_checkpoint']
-    ensemble_index = eval(args['checkpoints']['ensemble_index'])
+    output_dir = args['checkpoints']['wim_output_dir']
+    resume_dir = args['checkpoint']['output_dir']
 
-    if ensemble_index is None:
-        ensemble_str = ''
-    else:
-        ensemble_str = '.%.2i' % (ensemble_index)
-    logfile = open(join(output_dir, f'losses{ensemble_str}.dat'), 'w')
+    logfile = open(join(output_dir, 'losses.dat'), 'w')
     live_loss = eval(args['checkpoints']['live_updates'])
 
-    if train_vib:
-        inn = WrapperVIB(args)
-    else:
-        inn = GenerativeClassifier(args)
+    inn = GenerativeClassifier(args)
 
     inn.cuda()
     dataset = data.Dataset(args)
+
+    inn.resume(resume_dir)
 
     def log_write(line, endline='\n'):
         print(line, flush=True)
@@ -81,9 +74,6 @@ def train(args):
                                                      milestones=eval(args['training']['scheduler_milestones']))
 
     log_write(header_fmt.format(*plot_columns))
-
-    if resume:
-        inn.load(resume)
 
     t_start = time()
     if train_nll:
