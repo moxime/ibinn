@@ -37,7 +37,7 @@ def wim_train(args):
     inn.cuda()
     dataset = data.Dataset(args)
 
-    inn.resume(resume_dir)
+    inn.load(resume_dir)
 
     def log_write(line, endline='\n'):
         print(line, flush=True)
