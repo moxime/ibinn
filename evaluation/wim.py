@@ -76,6 +76,8 @@ def wim_train(args):
     for _ in range(eval(args['training']['n_epochs'])):
         sched.step()
 
+    print('LR updatted to', *scheed._last_lr)
+
     log_write(header_fmt.format(*plot_columns))
 
     t_start = time()
