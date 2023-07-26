@@ -73,8 +73,8 @@ def wim_train(args):
         sched = torch.optim.lr_scheduler.MultiStepLR(inn.optimizer, gamma=0.1,
                                                      milestones=eval(args['training']['scheduler_milestones']))
 
-    for _ in range(args['training']['n_epochs']):
-        sched.step()
+    for _ in range(eval(args['training']['n_epochs'])):
+    sched.step()
 
     log_write(header_fmt.format(*plot_columns))
 
