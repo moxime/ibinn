@@ -1,4 +1,4 @@
-from . import output
+from . import output, wim
 from .ood import outlier_detection
 from .calibration import calibration_curve
 from .latent_space import show_samples, show_latent_space, show_real_data
