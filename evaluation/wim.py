@@ -32,6 +32,8 @@ def wim_train(args):
     logfile = open(join(output_dir, 'losses.dat'), 'w')
     live_loss = eval(args['checkpoints']['live_updates'])
 
+    args['training']['train_mu'] = 'False'
+
     inn = GenerativeClassifier(args)
 
     inn.cuda()
