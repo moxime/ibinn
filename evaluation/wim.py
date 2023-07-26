@@ -139,7 +139,7 @@ def wim_train(args):
 
             if i_epoch > 0 and (i_epoch % interval_checkpoint) == 0:
                 inn.save(join(output_dir, f'model_{i_epoch}{ensemble_str}.pt'))
-            if (i_epoch % interval_figure) == 0 and not inn.feed_forward and not train_vib:
+            if (i_epoch % interval_figure) == 0:
                 evaluation.val_plots(join(output_dir, f'figs_{i_epoch}{ensemble_str}.pdf'), inn, dataset)
     except:
         if save_on_crash:
