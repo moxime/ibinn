@@ -138,12 +138,12 @@ def wim_train(args):
                 high_loss = False
 
             if i_epoch > 0 and (i_epoch % interval_checkpoint) == 0:
-                inn.save(join(output_dir, f'model_{i_epoch}{ensemble_str}.pt'))
+                inn.save(join(output_dir, f'model_{i_epoch}.pt'))
             if (i_epoch % interval_figure) == 0:
-                evaluation.val_plots(join(output_dir, f'figs_{i_epoch}{ensemble_str}.pdf'), inn, dataset)
+                evaluation.val_plots(join(output_dir, f'figs_{i_epoch}.pdf'), inn, dataset)
     except:
         if save_on_crash:
-            inn.save(join(output_dir, f'model_ABORT{ensemble_str}.pt'))
+            inn.save(join(output_dir, f'model_ABORT.pt'))
         raise
     finally:
         logfile.close()
@@ -156,4 +156,4 @@ def wim_train(args):
         # Feed-forward nets dont have the wierd FrEIA problems, skip
         pass
 
-    inn.save(join(output_dir, f'model{ensemble_str}.pt'))
+    inn.save(join(output_dir, f'model.pt'))
