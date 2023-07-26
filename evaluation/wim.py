@@ -74,7 +74,7 @@ def wim_train(args):
                                                      milestones=eval(args['training']['scheduler_milestones']))
 
     for _ in range(eval(args['training']['n_epochs'])):
-    sched.step()
+        sched.step()
 
     log_write(header_fmt.format(*plot_columns))
 
