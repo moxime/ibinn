@@ -160,6 +160,7 @@ def wim_train(args):
     try:
         for k in list(inn.inn._buffers.keys()):
             if 'tmp_var' in k:
+                print('>> Deleting', k)
                 del inn.inn._buffers[k]
     except AttributeError:
         # Feed-forward nets dont have the wierd FrEIA problems, skip
