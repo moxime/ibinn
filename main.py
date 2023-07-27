@@ -37,8 +37,12 @@ elif mode == 'test':
 
 elif mode == 'wim':
     import evaluation
+
     if not os.path.exists(os.path.join(wim_output_dir, 'model.pt')):
+        print('>> Wim backprop to be done')
         evaluation.wim.wim_train(args)
+    else:
+        print('>> Wim backprop already done')
 
     args['checkpoints']['output_dir'] = wim_output_dir
     evaluation.test(args)
