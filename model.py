@@ -244,11 +244,12 @@ class GenerativeClassifier(nn.Module):
                     'mu':  self.mu,
                     'phi': self.phi,
                     'opt': self.optimizer.state_dict()}, fname)
+        print('Model saved in', fname)
 
     def load(self, fname):
         data = torch.load(fname)
         data['inn'] = {k: v for k, v in data['inn'].items() if 'tmp_var' not in k}
-        print('Loaded from', fname, ':', *data['inn'])
+        print('Loaded {} parameters from {}'.format(len(data['inn']), fname))
         self.inn.load_state_dict(data['inn'])
         self.mu.data.copy_(data['mu'].data)
         self.phi.data.copy_(data['phi'].data)
