@@ -244,7 +244,7 @@ class GenerativeClassifier(nn.Module):
                     'mu':  self.mu,
                     'phi': self.phi,
                     'opt': self.optimizer.state_dict()}, fname)
-        print('Model saved in', fname)
+        print('>> Model saved in', fname)
 
     def load(self, fname):
         data = torch.load(fname)
@@ -256,4 +256,4 @@ class GenerativeClassifier(nn.Module):
         try:
             pass
         except:
-            print('loading the optimizer went wrong, skipping')
+            print('>> Loading the optimizer went wrong, skipping')
