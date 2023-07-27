@@ -36,6 +36,8 @@ def wim_train(args):
 
     inn = GenerativeClassifier(args)
 
+    inn.mu.requires_grad_(False)
+
     inn.cuda()
     dataset = data.Dataset(args)
 
