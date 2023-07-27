@@ -95,13 +95,12 @@ def wim_train(args):
         for i_epoch in range(N_epochs):
             running_avg = {l: [] for l in train_loss_names}
 
+            mu_copy = inn.mu.detach()
+
             for i_batch, (x, l) in enumerate(dataset.train_loader):
 
                 x, y = x.cuda(), dataset.onehot(l.cuda(), label_smoothing)
-                mu_copy = inn.mu.detach()
                 losses = inn(x, y)
-                dmu = (inn.mu - mu_copy).norm()
-                print('[D] >> dmu={:.1e}'.format(dmu))
 
                 if train_class_nll:
                     loss = 2. * losses['L_cNLL_tr']
@@ -141,6 +140,9 @@ def wim_train(args):
                     running_avg = {l: [] for l in train_loss_names}
 
             sched.step()
+            dmu = (inn.mu - mu_copy).norm()
+            print('[D] >> dmu={:.1e}'.format(dmu))
+
             if i_epoch > 2 and (val_losses['L_x_val'].item() > 1e5 or not np.isfinite(val_losses['L_x_val'].item())):
                 if high_loss:
                     raise RuntimeError("loss is astronomical")
