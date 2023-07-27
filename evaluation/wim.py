@@ -98,7 +98,10 @@ def wim_train(args):
             for i_batch, (x, l) in enumerate(dataset.train_loader):
 
                 x, y = x.cuda(), dataset.onehot(l.cuda(), label_smoothing)
+                mu_copy = inn.mu.detach()
                 losses = inn(x, y)
+                dmu = (inn.mu - mu_copy).norm()
+                print('[D] >> dmu={:.1e}'.format(dmu))
 
                 if train_class_nll:
                     loss = 2. * losses['L_cNLL_tr']
