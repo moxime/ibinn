@@ -140,7 +140,7 @@ def wim_train(args):
                     running_avg = {l: [] for l in train_loss_names}
 
             sched.step()
-            dmu = (inn.mu - mu_copy).norm()
+            dmu = (inn.mu - mu_copy).norm() / mu_copy.norm()
             print('[D] >> dmu={:.1e}'.format(dmu))
 
             if i_epoch > 2 and (val_losses['L_x_val'].item() > 1e5 or not np.isfinite(val_losses['L_x_val'].item())):
