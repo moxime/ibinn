@@ -172,3 +172,4 @@ def wim_train(args):
         pass
 
     inn.save(join(output_dir, f'model.pt'))
+    inn.save(join(output_dir, f'model.avg.pt'))
