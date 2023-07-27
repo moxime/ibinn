@@ -109,7 +109,7 @@ def wim_train(args):
                 loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(inn.trainable_params, grad_clip)
-                # inn.optimizer.step()
+                inn.optimizer.step()
                 inn.optimizer.zero_grad()
 
                 if live_loss:
