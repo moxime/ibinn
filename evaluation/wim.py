@@ -39,7 +39,7 @@ def wim_train(args, *wim_ood):
 
     inn = GenerativeClassifier(args)
 
-    # inn.mu.requires_grad_(False)
+    inn.mu.requires_grad_(False)
 
     inn.cuda()
     dataset = data.Dataset(args)

@@ -3,6 +3,10 @@ import sys
 import os
 import shutil
 
+import warnings
+
+warnings.filterwarnings("ignore", message="Setting attributes on ParameterList is not supported.")
+
 usage = "Usage: main.py [train|test] <config file>"
 assert len(sys.argv) in [2, 3], usage
 
