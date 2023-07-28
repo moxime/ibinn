@@ -100,8 +100,9 @@ def wim_train(args):
             for i_batch, (x, l) in enumerate(dataset.train_loader):
 
                 x, y = x.cuda(), dataset.onehot(l.cuda(), label_smoothing)
-                inn.eval()
-                losses = inn(x, y)
+
+                with torch.no_grad():
+                    losses = inn(x, y)
 
                 if train_class_nll:
                     loss = 2. * losses['L_cNLL_tr']
