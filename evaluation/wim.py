@@ -93,7 +93,7 @@ def wim_train(args):
 
     try:
         for i_epoch in range(N_epochs):
-            break
+
             running_avg = {l: [] for l in train_loss_names}
 
             mu_copy = inn.mu.clone()
@@ -103,7 +103,8 @@ def wim_train(args):
                 x, y = x.cuda(), dataset.onehot(l.cuda(), label_smoothing)
 
                 with torch.no_grad():
-                    losses = inn(x, y)
+                    # losses = inn(x, y)
+                    losses = inn(x)
 
                 if train_class_nll:
                     loss = 2. * losses['L_cNLL_tr']
