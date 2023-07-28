@@ -16,3 +16,5 @@ def get_ood_datasets(args, *oodsets, include_testset=True):
 
     if s == 'lsunr':
         generators.append((lsunr(args), 'LSUNR'))
+
+    return generators
