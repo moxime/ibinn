@@ -92,11 +92,12 @@ def wim_train(args, *wim_ood):
         beta_x, beta_y = 0., 1.
 
     try:
+        unknown_batch_gen = get_ood_datasets(args, wim_ood)
         for i_epoch in range(N_epochs):
 
             running_avg = {l: [] for l in train_loss_names}
 
-            unknown_batch_iter = [iter(_.test_loader) for _ in get_ood_datasets(args, wim_ood)]
+            unknown_batch_iter = [iter(_.test_loader) for _ in unknown_batch_gen]
 
             for i_batch, (x, l) in enumerate(dataset.train_loader):
 
