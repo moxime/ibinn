@@ -103,13 +103,12 @@ def wim_train(args):
                 x, y = x.cuda(), dataset.onehot(l.cuda(), label_smoothing)
 
                 with torch.no_grad():
-                    # losses = inn(x, y)
-                    losses = inn(x)
+                    losses = inn(x, y)
 
                 if train_class_nll:
                     loss = 2. * losses['L_cNLL_tr']
                 else:
-                    loss = beta_x * losses['L_x_tr']  # - beta_y * losses['L_y_tr']
+                    loss = beta_x * losses['L_x_tr'] - beta_y * losses['L_y_tr']
                 # loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(inn.trainable_params, grad_clip)

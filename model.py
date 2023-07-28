@@ -254,6 +254,6 @@ class GenerativeClassifier(nn.Module):
         self.mu.data.copy_(data['mu'].data)
         self.phi.data.copy_(data['phi'].data)
         try:
-            pass
+            self.optimizer.load_state_dict(data['opt'])
         except:
             print('>> Loading the optimizer went wrong, skipping')
