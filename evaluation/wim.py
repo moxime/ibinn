@@ -10,6 +10,7 @@ import data
 from model import GenerativeClassifier
 from VIB import WrapperVIB
 import evaluation
+from ood_datasets import get_ood_datasets
 
 
 def wim_train(args, *wim_ood):
@@ -31,6 +32,8 @@ def wim_train(args, *wim_ood):
 
     logfile = open(join(output_dir, 'losses.dat'), 'w')
     live_loss = eval(args['checkpoints']['live_updates'])
+
+    wim_alpha = eval(args['wim']['alpha'])
 
     # args['training']['train_mu'] = 'False'
 
@@ -93,24 +96,32 @@ def wim_train(args, *wim_ood):
 
             running_avg = {l: [] for l in train_loss_names}
 
-            mu_copy = inn.mu.clone()
+            unknown_batch_iter = [iter(_.test_loader) for _ in get_ood_datasets(wim_ood)]
 
             for i_batch, (x, l) in enumerate(dataset.train_loader):
 
                 x, y = x.cuda(), dataset.onehot(l.cuda(), label_smoothing)
 
-                with torch.no_grad():
-                    losses = inn(x, y)
+                losses = inn(x, y)
+
+                x_y_ = [next(_) for _ in unknown_batch_iter]
+
+                for (x, y) in x_y_:
+                    losses_ = inn(x.cuda(), torch.zeros_like(dataset.onehot(y.cuda())), wim=True)
+
+                    for k in losses_:
+                        losses[k] += wim_alpha * losses_[k]
 
                 if train_class_nll:
                     loss = 2. * losses['L_cNLL_tr']
                 else:
                     loss = beta_x * losses['L_x_tr'] - beta_y * losses['L_y_tr']
-                # loss.backward()
+
+                loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(inn.trainable_params, grad_clip)
-                # inn.optimizer.step()
-                # inn.optimizer.zero_grad()
+                inn.optimizer.step()
+                inn.optimizer.zero_grad()
 
                 if live_loss:
                     print(output_fmt_live.format(*([(time() - t_start) / 60.,
@@ -138,10 +149,7 @@ def wim_train(args, *wim_ood):
                     # TODO visdom?
                     log_write(output_fmt.format(*losses_display))
                     running_avg = {l: [] for l in train_loss_names}
-                break
             sched.step()
-            dmu = (inn.mu - mu_copy).norm() / mu_copy.norm()
-            print('[D] >> dmu={:.1e}'.format(dmu))
 
             if i_epoch > 2 and (val_losses['L_x_val'].item() > 1e5 or not np.isfinite(val_losses['L_x_val'].item())):
                 if high_loss:
@@ -166,7 +174,7 @@ def wim_train(args, *wim_ood):
         for k in list(inn.inn._buffers.keys()):
             if 'tmp_var' in k:
                 # print('>> Deleting', k)
-                del inn.inn._buffers[k]
+                pass  # del inn.inn._buffers[k]
     except AttributeError:
         # Feed-forward nets dont have the wierd FrEIA problems, skip
         pass
