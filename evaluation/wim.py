@@ -106,7 +106,7 @@ def wim_train(args):
                     # losses = inn(x, y)
                     losses = inn(x)
 
-                if train_class_nll:
+                if train_class_nll or True:
                     loss = 2. * losses['L_cNLL_tr']
                 else:
                     loss = beta_x * losses['L_x_tr'] - beta_y * losses['L_y_tr']
