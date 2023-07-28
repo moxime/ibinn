@@ -12,7 +12,7 @@ from VIB import WrapperVIB
 import evaluation
 
 
-def wim_train(args):
+def wim_train(args, *wim_ood):
 
     N_epochs = eval(args['wim']['n_epochs'])
     beta = eval(args['training']['beta_IB'])
@@ -77,10 +77,7 @@ def wim_train(args):
         sched = torch.optim.lr_scheduler.MultiStepLR(inn.optimizer, gamma=0.1,
                                                      milestones=eval(args['training']['scheduler_milestones']))
 
-    for _ in range(eval(args['training']['n_epochs'])):
-        sched.step()
-
-    print('LR updatted to', *sched._last_lr)
+    print('>> LR is at', *sched._last_lr)
 
     log_write(header_fmt.format(*plot_columns))
 

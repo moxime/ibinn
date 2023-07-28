@@ -19,11 +19,8 @@ if len(sys.argv) == 3:
 output_base_dir = args['checkpoints']['global_output_folder']
 output_dir = os.path.join(output_base_dir, args['checkpoints']['base_name'])
 args['checkpoints']['output_dir'] = output_dir
-wim_output_dir = os.path.join(output_dir, 'wim')
-args['checkpoints']['wim_output_dir'] = wim_output_dir
 
 os.makedirs(output_dir, exist_ok=True)
-os.makedirs(wim_output_dir, exist_ok=True)
 
 with open(os.path.join(output_dir, 'conf.ini'), 'w') as f:
     args.write(f)
@@ -35,12 +32,17 @@ elif mode == 'test':
     import evaluation
     evaluation.test(args)
 
-elif mode == 'wim':
+elif mode.startswith('wim'):
+    wim_output_dir = os.path.join(output_dir, mode)
+    args['checkpoints']['wim_output_dir'] = wim_output_dir
+    os.makedirs(wim_output_dir, exist_ok=True)
+
+    wim_ood = mode.split('-')[1:]
     import evaluation
 
     if not os.path.exists(os.path.join(wim_output_dir, 'model.pt')):
-        print('>> Wim backprop to be done')
-        evaluation.wim.wim_train(args)
+        print('>> Wim backprop to be done with', *wim_ood)
+        evaluation.wim.wim_train(args, *wim_ood)
     else:
         print('>> Wim backprop already done')
 
