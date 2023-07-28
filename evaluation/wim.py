@@ -109,7 +109,7 @@ def wim_train(args):
                 loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(inn.trainable_params, grad_clip)
-                inn.optimizer.step()
+                # inn.optimizer.step()
                 inn.optimizer.zero_grad()
 
                 if live_loss:
@@ -138,7 +138,7 @@ def wim_train(args):
                     # TODO visdom?
                     log_write(output_fmt.format(*losses_display))
                     running_avg = {l: [] for l in train_loss_names}
-
+                break
             sched.step()
             dmu = (inn.mu - mu_copy).norm() / mu_copy.norm()
             print('[D] >> dmu={:.1e}'.format(dmu))
