@@ -93,6 +93,7 @@ def wim_train(args):
 
     try:
         for i_epoch in range(N_epochs):
+            break
             running_avg = {l: [] for l in train_loss_names}
 
             mu_copy = inn.mu.clone()
