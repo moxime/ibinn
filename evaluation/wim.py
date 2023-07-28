@@ -104,7 +104,11 @@ def wim_train(args, *wim_ood):
 
                 losses = inn(x, y)
 
-                x_y_ = [next(_) for _ in unknown_batch_iter]
+                try:
+                    x_y_ = [next(_) for _ in unknown_batch_iter]
+                except StopIteration:
+                    print('>> Stopping at iteration', i_batch)
+                    break
 
                 for (x, y) in x_y_:
                     losses_ = inn(x.cuda(), torch.zeros_like(dataset.onehot(y.cuda())), wim=True)
