@@ -96,7 +96,7 @@ class Dataset():
 
 
 def cifar100(args):
-    return Dataset(args).test_loader
+    return Dataset(args, []).test_loader
 
 
 def cifar_flipped(args):
