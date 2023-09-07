@@ -124,7 +124,7 @@ def outlier_detection(inn_model, data, args, test_set=False):
         roc = []
         for i in range(len(quantile_steps) // 2):
             tpr = (quantile_steps[i] + 1. - quantile_steps[-(1 + i)])
-            fpr = np.mean(np.logical_or(test_scores >= train_quantiles[i], test_scores <= train_quantiles[-(i + 1)]))
+            fpr = np.mean(np.logical_and(test_scores >= train_quantiles[i], test_scores <= train_quantiles[-(i + 1)]))
             roc.append((fpr, tpr))
         roc.append((1., 1.))
 
