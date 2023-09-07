@@ -100,19 +100,19 @@ def outlier_detection(inn_model, data, args, test_set=False):
     plt.hist(scores_ID, bins=50, histtype='step', density=True, color='gray', label='orig. distrib.')
 
     def auc(test_scores, train_scores, label=''):
-        xjoint = -np.sort(-np.concatenate((train_scores, test_scores)))
-        xjoint[-1] -= 0.0001
+        xjoint = np.sort(np.concatenate((train_scores, test_scores)))
+        xjoint[0] -= 0.0001
         val_range = (np.min(xjoint), np.max(xjoint))
 
         roc = []
-        last_tpr = 1.
+        last_tpr = 0.
         print('*** {} ***'.format(label))
         for x in xjoint:
             tpr = np.mean(train_scores < x)
             fpr = np.mean(test_scores < x)
             if tpr < last_tpr:
                 print('{:.1%} -- {:.1%}'.format(fpr, tpr))
-                last_tpr -= 0.1
+                last_tpr += 0.1
             roc.append((fpr, tpr))
         roc = np.array(roc).T
 
