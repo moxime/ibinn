@@ -11,6 +11,7 @@ import torchvision.transforms as T
 import torchvision.transforms.functional as F
 import torchvision.datasets
 
+
 class Augmentor():
     def __init__(self, deterministic, noise_amplitde, beta, gamma, tanh, ch_pad=0, ch_pad_sig=0):
         self.deterministic = deterministic
@@ -51,6 +52,7 @@ class Augmentor():
 
         return x / self.gamma.to(x.device) + self.beta.to(x.device)
 
+
 class Dataset():
 
     def __init__(self, args, extra_transforms):
@@ -70,7 +72,7 @@ class Dataset():
             beta = torch.Tensor((0.4914, 0.4822, 0.4465)).view(-1, 1, 1)
             gamma = 1. / torch.Tensor((0.247, 0.243, 0.261)).view(-1, 1, 1)
 
-        self.test_augmentor =  Augmentor(True,  0.,    beta, gamma, tanh, channel_pad, channel_pad_sigma)
+        self.test_augmentor = Augmentor(True,  0.,    beta, gamma, tanh, channel_pad, channel_pad_sigma)
         self.transform = T.Compose([T.ToTensor(), self.test_augmentor])
 
         self.dims = (3 + channel_pad, 32, 32)
@@ -88,10 +90,10 @@ class Dataset():
             raise ValueError("Only CIFAR10 and CIFAR100 supported for OoD datasets")
 
         self.test_data = dataset_class(data_dir, train=False, download=True,
-                                               transform=T.Compose(extra_transforms + [self.test_augmentor]))
+                                       transform=T.Compose(extra_transforms + [self.test_augmentor]))
 
-        self.test_loader   = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False,
-                                   num_workers=2, pin_memory=True, drop_last=True)
+        self.test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False,
+                                      num_workers=2, pin_memory=True, drop_last=True)
 
     def de_augment(self, x):
         return self.test_augmentor.de_augment(x)
@@ -103,8 +105,10 @@ class Dataset():
 def cifar_flipped(args):
     return Dataset(args, [T.RandomVerticalFlip(1.0), T.ToTensor()]).test_loader
 
+
 def cifar_hue(args, alpha):
     return Dataset(args, [lambda x: F.adjust_hue(x, alpha/2), T.ToTensor()]).test_loader
+
 
 def cifar_rgb_rotation(args, alpha):
     a = np.pi * (0.2 * alpha ** 0.7)
@@ -112,13 +116,14 @@ def cifar_rgb_rotation(args, alpha):
     scale = 1 + 0.0 * alpha
 
     rx = np.array([[1, 0, 0], [0, np.cos(a), -np.sin(a)], [0, np.sin(a), np.cos(a)]])
-    ry = np.array([[np.cos(b), 0, np.sin(b)], [0,1,0], [-np.sin(b), 0, np.cos(b)]])
+    ry = np.array([[np.cos(b), 0, np.sin(b)], [0, 1, 0], [-np.sin(b), 0, np.cos(b)]])
     rotation_kernel = scale * np.dot(rx, ry)
     rotation_kernel = torch.from_numpy(rotation_kernel).view(3, 3, 1, 1).float()
+
     def rotate_rgb(x):
         x = x.expand(1, -1, -1, -1) - 0.5
         x = conv2d(x, rotation_kernel)
-        return (x + 0.5).clamp(0.,1.).squeeze()
+        return (x + 0.5).clamp(0., 1.).squeeze()
 
     return Dataset(args, [T.ToTensor(), rotate_rgb]).test_loader
 
@@ -129,6 +134,7 @@ def cifar_noise(args, noise_level=0.1):
         return x.clamp(0., 1.)
 
     return Dataset(args, [T.ToTensor(), add_noise]).test_loader
+
 
 beta = torch.Tensor((0.4914, 0.4822, 0.4465)).view(-1, 1, 1)
 gamma = 1. / torch.Tensor((0.247, 0.243, 0.261)).view(-1, 1, 1)
@@ -149,11 +155,11 @@ if __name__ == '__main__':
     plt.figure(figsize=(2*w, 2*h))
     for i, a in enumerate(np.linspace(0, 1, w)):
         loader = cifar_rgb_rotation(default_args, a)
-        for x,y in loader:
+        for x, y in loader:
             x = default_augment.de_augment(x)
             for j in range(h):
                 plt.subplot(h, w, 1 + w*j + i)
-                plt.imshow(x[j+dh].numpy().transpose((1,2,0)))
+                plt.imshow(x[j+dh].numpy().transpose((1, 2, 0)))
                 plt.xticks([])
                 plt.yticks([])
             break

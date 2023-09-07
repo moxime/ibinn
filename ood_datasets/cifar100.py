@@ -95,6 +95,10 @@ class Dataset():
         return self.test_augmentor(x)
 
 
+def cifar100(args):
+    return Dataset(args).test_loader
+
+
 def cifar_flipped(args):
     return Dataset(args, [T.RandomVerticalFlip(1.0), T.ToTensor()]).test_loader
 
