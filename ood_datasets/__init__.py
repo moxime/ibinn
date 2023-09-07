@@ -1,4 +1,4 @@
-from . import svhn, lsunr
+from . import svhn, lsunr, cifar100
 import data
 
 
