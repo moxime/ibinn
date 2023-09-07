@@ -78,6 +78,9 @@ def outlier_detection(inn_model, data, args, test_set=False):
     if 'lsunr' in oodsets:
         generators.append((ood_datasets.lsunr.lsunr(inn_model.args), 'LSUNR'))
 
+    if 'cifar100' in oodsets:
+        generators.append((ood_datasets.cifar100.cifar100(inn_model.args), 'CIFAR100'))
+
     for gen, label in generators:
         print(f'>> Computing OoD score for {label}')
         scores_all[label], ent = collect_scores(gen)
