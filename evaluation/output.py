@@ -72,7 +72,7 @@ def to_latex_table_row(results_dict, out_dir, name="",
 
 
 def to_csv(results_dict, out_dir):
-    pass
+    ood
 
 
 def to_csv_row(results_dict, out_dir):

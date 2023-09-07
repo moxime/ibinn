@@ -230,9 +230,9 @@ def test(args):
 
     if eval_ood_detection:
         print('>> Determining outlier AUC')
-        aucs_1t, aucs_2t, aucs_tt, entrop, delta_entrop = outlier_detection(inn, dataset, args, test_set=True)
+        roc_1t, roc_2t, roc_tt, entrop, delta_entrop = outlier_detection(inn, dataset, args, test_set=True)
 
-        for aucs, test_type in zip([aucs_1t, aucs_2t, aucs_tt, entrop, delta_entrop],
+        for aucs, test_type in zip([roc_1t, roc_2t, roc_tt, entrop, delta_entrop],
                                    ['ood_1t', 'ood_2t', 'ood_tt', 'ood_ent', 'ood_d_ent']):
             m = len(list(aucs.keys()))
             geo_mean = np.prod(list(aucs.values())) ** (1./m)

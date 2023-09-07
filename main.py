@@ -32,6 +32,7 @@ with open(os.path.join(output_dir, 'conf.ini'), 'w') as f:
 if mode == 'train':
     import train
     train.train(args)
+
 elif mode == 'test':
     import evaluation
     evaluation.test(args)
