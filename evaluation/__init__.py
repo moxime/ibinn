@@ -265,5 +265,4 @@ def test(args):
         #                           blank_bitspdim=(inn.feed_forward or inn.feed_forward_revnet),
         #                           blank_classif=(eval(args['training']['beta_IB']) == 0))
 
-        print('acc\n', eval_test_acc)
-        print('\nood\n', eval_ood_detection)
+        print(results_dict)
