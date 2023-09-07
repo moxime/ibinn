@@ -232,19 +232,22 @@ def test(args):
         print('>> Determining outlier AUC')
         roc_1t, roc_2t, roc_tt, entrop, delta_entrop = outlier_detection(inn, dataset, args, test_set=True)
 
-        for aucs, test_type in zip([roc_1t, roc_2t, roc_tt, entrop, delta_entrop],
+        for rocs, test_type in zip([roc_1t, roc_2t, roc_tt, entrop, delta_entrop],
                                    ['ood_1t', 'ood_2t', 'ood_tt', 'ood_ent', 'ood_d_ent']):
-            m = len(list(aucs.keys()))
-            geo_mean = np.prod(list(aucs.values())) ** (1./m)
-            ari_mean = np.mean(list(aucs.values()))
 
-            aucs['geo_mean'] = geo_mean
-            aucs['ari_mean'] = ari_mean
+            m = len(list(rocs.keys()))
+            k = list(rocs.values())[0].keys()
+            geo_mean = {_: np.prod(list(rocs[s][_] for s in rocs)) ** (1./m) for _ in k}
+            ari_mean = {_: np.mean(list(rocs[s][_] for s in rocs)) for _ in k}
 
-            for k, v in aucs.items():
-                aucs[k] = float(v)
+            rocs['geo_mean'] = geo_mean
+            rocs['ari_mean'] = ari_mean
 
-            results_dict[test_type] = aucs
+            for k, v in rocs.items():
+                pass
+                # aucs[k] = float(v)
+
+            results_dict[test_type] = rocs
 
     print('>> Saving figures')
     with PdfPages(fig_fname) as pp:

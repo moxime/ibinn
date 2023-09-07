@@ -109,8 +109,8 @@ def to_console(results_dict, out_dir):
     log_write('')
 
     for i, test_type in enumerate(['ood_ent', 'ood_d_ent', 'ood_1t', 'ood_2t', 'ood_tt']):
-        aucs = results_dict[test_type]
-        labels_list = list(aucs.keys())
+        rocs = results_dict[test_type]
+        labels_list = list(rocs.keys())
 
         if i == 0:
             log_write('DATASET    ' + ''.join(['%-16s' % (l) for l in labels_list]))
@@ -120,6 +120,7 @@ def to_console(results_dict, out_dir):
         else:
             mult = 100.
 
-        log_write('%-9s  ' % (test_type.upper()) + ''.join(['%-16.4f' % (mult * aucs[l]) for l in labels_list]))
+        log_write('%-9s  ' % (test_type.upper()) + ''.join(['%-16.4f' %
+                  (mult * next(iter(rocs[l]))) for l in labels_list]))
 
     logfile.close()
