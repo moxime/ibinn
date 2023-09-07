@@ -105,12 +105,12 @@ def outlier_detection(inn_model, data, args, test_set=False):
         val_range = (np.min(xjoint), np.max(xjoint))
 
         roc = []
-        last_tpr = 0.
-        print('*** {} ***'.format(label))
+        last_tpr = 1.
+        # print('*** {} ***'.format(label))
         for x in xjoint:
             tpr = np.mean(train_scores < x)
             fpr = np.mean(test_scores < x)
-            if tpr < last_tpr:
+            if tpr > last_tpr:
                 print('{:.1%} -- {:.1%}'.format(fpr, tpr))
                 last_tpr += 0.1
             roc.append((fpr, tpr))

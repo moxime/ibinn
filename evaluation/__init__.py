@@ -257,10 +257,13 @@ def test(args):
         output.to_json(results_dict, output_dir)
         output.to_console(results_dict, output_dir)
         print('>> Generating data output files')
-        output.to_latex_table_row(results_dict, output_dir,
-                                  name=args['checkpoints']['base_name'],
-                                  italic_ood=False,
-                                  blank_ood=(inn.feed_forward or inn.feed_forward_revnet),
-                                  italic_entrop=False,
-                                  blank_bitspdim=(inn.feed_forward or inn.feed_forward_revnet),
-                                  blank_classif=(eval(args['training']['beta_IB']) == 0))
+        # output.to_latex_table_row(results_dict, output_dir,
+        #                           name=args['checkpoints']['base_name'],
+        #                           italic_ood=False,
+        #                           blank_ood=(inn.feed_forward or inn.feed_forward_revnet),
+        #                           italic_entrop=False,
+        #                           blank_bitspdim=(inn.feed_forward or inn.feed_forward_revnet),
+        #                           blank_classif=(eval(args['training']['beta_IB']) == 0))
+
+        print('acc\n', eval_test_acc)
+        print('\nood\n', eval_ood_detection)
