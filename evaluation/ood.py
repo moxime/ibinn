@@ -108,7 +108,7 @@ def outlier_detection(inn_model, data, args, test_set=False):
         for x in xjoint:
             tpr = np.mean(train_scores < x)
             fpr = np.mean(test_scores < x)
-            print('{:.1%}', '{:.1%}'.format(fpr, tpr))
+            print('{:.1%} -- {:.1%}'.format(fpr, tpr))
             roc.append((fpr, tpr))
         roc = np.array(roc).T
 
