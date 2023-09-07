@@ -2,6 +2,7 @@ import json
 from os.path import join
 import numpy as np
 
+
 def to_latex_table_row(results_dict, out_dir, name="",
                        italic_ood=False,
                        blank_ood=False,
@@ -11,7 +12,6 @@ def to_latex_table_row(results_dict, out_dir, name="",
 
     name = name.replace("_", " ")
     outfile = open(join(out_dir, 'results.tex'), 'w')
-
 
     outfile.write(" & {:>14s} &\n".format(name))
     if blank_classif:
@@ -71,15 +71,22 @@ def to_latex_table_row(results_dict, out_dir, name="",
     outfile.close()
 
 
+def to_csv(results_dict, out_dir):
+    pass
+
+
 def to_csv_row(results_dict, out_dir):
     pass
+
 
 def to_raw(results_dict, out_dir):
     pass
 
+
 def to_json(results_dict, out_dir):
     json.dump(results_dict, open(join(out_dir, 'results.json'), 'w'),
               sort_keys=True,  indent=2)
+
 
 def to_console(results_dict, out_dir):
 

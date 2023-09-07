@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 
-def outlier_detection(inn_model, data, args, test_set=False):
+def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
     ''' the option `test_set` controls, whether the test set, or the validation set is used.'''
 
     oodsets = args['evaluation']['oodsets'].split()
@@ -105,14 +105,13 @@ def outlier_detection(inn_model, data, args, test_set=False):
         val_range = (np.min(xjoint), np.max(xjoint))
 
         roc = []
-        last_tpr = 1.
-        # print('*** {} ***'.format(label))
+        target_fpr = None
         for x in xjoint:
             tpr = np.mean(train_scores < x)
             fpr = np.mean(test_scores < x)
-            if tpr > last_tpr:
-                print('{:.1%} -- {:.1%}'.format(fpr, tpr))
-                last_tpr += 0.1
+            if tpr > target_tpr and target_fpr is not None:
+                target_fpr = fpr
+                print('{:.1%}: {%.1%}'.format(tpr, target_fpr))
             roc.append((fpr, tpr))
         roc = np.array(roc).T
 
@@ -122,19 +121,26 @@ def outlier_detection(inn_model, data, args, test_set=False):
         plt.figure(fig_roc.number)
         plt.plot(roc[0], roc[1], label=label + ' (%.4f AUC)' % (auc))
 
-        return auc
+        return {'auc': auc, 'fpr': target_fpr}
 
     def auc_quantiles(test_scores, train_quantiles, quantile_steps):
 
         roc = []
+        target_fpr = None
+
         for i in range(len(quantile_steps) // 2):
             tpr = (quantile_steps[i] + 1. - quantile_steps[-(1 + i)])
             fpr = np.mean(np.logical_and(test_scores >= train_quantiles[i], test_scores <= train_quantiles[-(i + 1)]))
+            if tpr > target_tpr and target_fpr is not None:
+                target_fpr = fpr
+                print('{:.1%}: {%.1%}'.format(tpr, target_fpr))
+
             roc.append((fpr, tpr))
         roc.append((1., 1.))
 
         roc = np.array(roc).T
-        return np.trapz(roc[1], x=roc[0])
+        auc = np.trapz(roc[1], x=roc[0])
+        return {'auc': auc, 'fpr': target_fpr}
 
     aucs_one_tailed = {}
     aucs_two_tailed = {}
