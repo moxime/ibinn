@@ -96,7 +96,7 @@ class Dataset():
 
 
 def cifar100(args):
-    return Dataset(args, []).test_loader
+    return Dataset(args, [T.ToTensor()]).test_loader
 
 
 def cifar_flipped(args):
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     default_args = configparser.ConfigParser()
     default_args.read('default.ini')
 
-    w = 8
+    w = 1
     h = 1
     dh = 1
     plt.figure(figsize=(2*w, 2*h))
