@@ -199,19 +199,23 @@ def test(args):
         inn.save(model_fname[:-3] + '.avg.pt')
     inn.eval()
 
+    testset = args['data']['dataset'].lower()
+
+    results_dict = {}
+
     if eval_test_acc:
         print('>> Determining test accuracy')
         metrics = test_metrics(inn, dataset, args)
-        results_dict = {'test_metrics': metrics}
+        results_dict['test_metrics'] = {testset: metrics}
 
     if eval_calibration:
         print('>> Plotting calibration curve')
         ece, mce, ice, ovc = calibration_curve(inn, dataset)
-        results_dict['calib_err'] = {'ece': float(100. * ece),
-                                     'mce': float(100. * mce),
-                                     'ice': float(100. * ice),
-                                     'oce': float(ovc),
-                                     'gme': float(100. * (ece * mce * ice)**0.333333333)}
+        results_dict['calib_err'] = {testset: {'ece': float(100. * ece),
+                                               'mce': float(100. * mce),
+                                               'ice': float(100. * ice),
+                                               'oce': float(ovc),
+                                               'gme': float(100. * (ece * mce * ice)**0.333333333)}}
 
     if not vib_model and not inn.feed_forward:
         if eval_sample_generation:

@@ -1,6 +1,7 @@
 import json
 from os.path import join
 import numpy as np
+import pandas as pd
 
 
 def to_latex_table_row(results_dict, out_dir, name="",
@@ -72,7 +73,19 @@ def to_latex_table_row(results_dict, out_dir, name="",
 
 
 def to_csv(results_dict, out_dir):
-    ood
+    pass
+
+
+def to_df(results_dict):
+    df = pd.concat({k: pd.DataFrame(results_dict[k]).T for k in results_dict if 'ood' in k}, axis=1)
+    # df_ = pd.DataFrame(df.values.tolist())
+    df.columns.rename(['method', 'measures'], inplace=True)
+    df.index.rename('set', inplace=True)
+    df = df.unstack('set').to_frame().T.reorder_levels(['set', 'method', 'measures'], axis=1)
+    # return df.reindex(columns=sorted(df.columns))
+
+    df = pd.concat({k: pd.DataFrame(results_dict[k]).T for k in results_dict if 'ood' not in k}, axis=1)
+    return df
 
 
 def to_csv_row(results_dict, out_dir):
@@ -90,8 +103,9 @@ def to_json(results_dict, out_dir):
 
 def to_console(results_dict, out_dir):
 
+    testset = next(iter(results_dict['calib_err']))
     logfile = open(join(out_dir, 'results.log'), 'w')
-    ce = results_dict['calib_err']
+    ce = results_dict['calib_err'][testset]
     ece, mce, ice, ovc, gme = ce['ece'], ce['mce'], ce['ice'], ce['oce'], ce['gme']
 
     def log_write(line, endline='\n'):
@@ -99,8 +113,8 @@ def to_console(results_dict, out_dir):
         logfile.write(line)
         logfile.write(endline)
 
-    log_write('ACC     %.4f' % (results_dict['test_metrics']['accuracy']))
-    log_write('BITS    %.4f' % (results_dict['test_metrics']['bits_per_dim']))
+    log_write('ACC     %.4f' % (results_dict['test_metrics'][testset]['accuracy']))
+    log_write('BITS    %.4f' % (results_dict['test_metrics'][testset]['bits_per_dim']))
     log_write('')
 
     log_write(('XCE     ' + '%-10s' * 4) % ('ECE', 'MCE', 'ICE', 'OVC'))
