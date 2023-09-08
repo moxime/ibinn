@@ -121,6 +121,6 @@ def to_console(results_dict, out_dir):
             mult = 100.
 
         log_write('{:9s} '.format(test_type.upper()) +
-                  ''.join(['{:-16.4f}'.format(mult * rocs[l]['auc' if 'auc' in rocs[l] else 'val']) for l in labels_list)))
+                  ''.join(['{:-16.4f}'.format(mult * rocs[l]['auc' if 'auc' in rocs[l] else 'val']) for l in labels_list]))
 
         logfile.close()
