@@ -73,13 +73,13 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
     #                   ]
 
     if 'svhn' in oodsets:
-        generators.append((ood_datasets.svhn.svhn(inn_model.args), 'SVHN'))
+        generators.append((ood_datasets.svhn.svhn(inn_model.args), 'svhn'))
 
     if 'lsunr' in oodsets:
-        generators.append((ood_datasets.lsunr.lsunr(inn_model.args), 'LSUNR'))
+        generators.append((ood_datasets.lsunr.lsunr(inn_model.args), 'lsunr'))
 
     if 'cifar100' in oodsets:
-        generators.append((ood_datasets.cifar100.cifar100(inn_model.args), 'CIFAR100'))
+        generators.append((ood_datasets.cifar100.cifar100(inn_model.args), 'cifar100'))
 
     for gen, label in generators:
         print(f'>> Computing OoD score for {label}')

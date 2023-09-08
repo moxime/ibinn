@@ -12,9 +12,9 @@ def get_ood_datasets(args, *oodsets, include_testset=True):
 
     for s in oodsets:
         if s == 'svhn':
-            generators.append((svhn(args), 'SVHN'))
+            generators.append((svhn(args), 'svhn'))
 
     if s == 'lsunr':
-        generators.append((lsunr(args), 'LSUNR'))
+        generators.append((lsunr(args), 'lsunr'))
 
     return generators

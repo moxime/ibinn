@@ -1,7 +1,6 @@
 import json
 from os.path import join
 import numpy as np
-# import pandas as pd
 
 
 def to_latex_table_row(results_dict, out_dir, name="",
@@ -77,12 +76,14 @@ def to_csv(results_dict, out_dir):
 
 
 def to_df(results_dict):
-    df = pd.concat({k: pd.DataFrame(results_dict[k]).T for k in results_dict if 'ood' in k}, axis=1)
+    import pandas as pd
+
+    df = pd.concat({k: pd.DataFrame(results_dict[k]).T for k in results_dict}, axis=1)
     # df_ = pd.DataFrame(df.values.tolist())
     df.columns.rename(['method', 'measures'], inplace=True)
     df.index.rename('set', inplace=True)
     df = df.unstack('set').to_frame().T.reorder_levels(['set', 'method', 'measures'], axis=1)
-    # return df.reindex(columns=sorted(df.columns))
+    return df.reindex(columns=sorted(df.columns))
 
     df = pd.concat({k: pd.DataFrame(results_dict[k]).T for k in results_dict if 'ood' not in k}, axis=1)
     return df
