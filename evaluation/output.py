@@ -1,7 +1,7 @@
 import json
 from os.path import join
 import numpy as np
-import pandas as pd
+# import pandas as pd
 
 
 def to_latex_table_row(results_dict, out_dir, name="",
