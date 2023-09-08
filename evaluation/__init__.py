@@ -93,7 +93,7 @@ def val_plots(fname, model, data):
 
     y_digits = torch.zeros(n_classes_show * n_samples, n_classes).cuda()
     for i in range(n_classes_show):
-        y_digits[n_samples * i: n_samples * (i+1), i] = 1.
+        y_digits[n_samples * i: n_samples * (i + 1), i] = 1.
 
     show_samples(model, data, y_digits)
     show_latent_space(model, data)
@@ -211,7 +211,7 @@ def test(args):
                                      'mce': float(100. * mce),
                                      'ice': float(100. * ice),
                                      'oce': float(ovc),
-                                     'gme': float(100. * (ece*mce*ice)**0.333333333)}
+                                     'gme': float(100. * (ece * mce * ice)**0.333333333)}
 
     if not vib_model and not inn.feed_forward:
         if eval_sample_generation:
@@ -220,7 +220,7 @@ def test(args):
             n_classes = dataset.n_classes
             y_all_classes = torch.zeros(n_classes * n_samples, n_classes).cuda()
             for i in range(n_classes):
-                y_all_classes[n_samples * i: n_samples * (i+1), i] = 1.
+                y_all_classes[n_samples * i: n_samples * (i + 1), i] = 1.
             show_samples(inn, dataset, y_all_classes)
             show_real_data(inn, dataset, y_all_classes)
 
@@ -237,15 +237,15 @@ def test(args):
 
             m = len(list(rocs.keys()))
             k = list(rocs.values())[0].keys()
-            geo_mean = {_: np.prod(list(rocs[s][_] for s in rocs)) ** (1./m) for _ in k}
+            geo_mean = {_: np.prod(list(rocs[s][_] for s in rocs)) ** (1. / m) for _ in k}
             ari_mean = {_: np.mean(list(rocs[s][_] for s in rocs)) for _ in k}
 
             rocs['geo_mean'] = geo_mean
             rocs['ari_mean'] = ari_mean
 
-            for k, v in rocs.items():
-                pass
-                # aucs[k] = float(v)
+            for l in rocs:
+                for k, v in rocs[l].items():
+                    rocs[l][k] = float(v)
 
             results_dict[test_type] = rocs
 
