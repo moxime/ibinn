@@ -84,7 +84,7 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
     for gen, label in generators:
         print(f'>> Computing OoD score for {label}')
         scores_all[label], ent = collect_scores(gen)
-        entrop_all[label] = np.mean(ent)
+        entrop_all[label] = {'val': np.mean(ent)}
 
     scores_ID, entrop_ID = collect_scores(in_distrib_data, oversample=int(args['evaluation']['train_set_oversampling']))
     entrop_ID = np.mean(entrop_ID)
@@ -150,11 +150,11 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
         aucs_one_tailed[label] = auc(score, scores_ID, label)
         aucs_two_tailed[label] = auc_quantiles(score, quantiles_ID, quantile_steps)
         aucs_typicality[label] = auc(np.abs(score - typical_ID), typicality_scores_ID)
-        delta_entropy[label] = {'val': entrop_all[label] - entrop_ID}
+        delta_entropy[label] = {'val': entrop_all[label]['val'] - entrop_ID}
 
     plt.figure(fig_hist.number)
     plt.legend()
     plt.figure(fig_roc.number)
     plt.legend()
 
-    return aucs_one_tailed, aucs_two_tailed, aucs_typicality, entrop_all, {'val': delta_entropy}
+    return aucs_one_tailed, aucs_two_tailed, aucs_typicality, entrop_all, delta_entropy

@@ -85,7 +85,7 @@ def to_raw(results_dict, out_dir):
 
 def to_json(results_dict, out_dir):
     json.dump(results_dict, open(join(out_dir, 'results.json'), 'w'),
-              sort_keys=True,  indent=2)
+              sort_keys=True, indent=2)
 
 
 def to_console(results_dict, out_dir):
@@ -121,6 +121,6 @@ def to_console(results_dict, out_dir):
             mult = 100.
 
         log_write('%-9s  ' % (test_type.upper()) + ''.join(['%-16.4f' %
-                  (mult * next(iter(rocs[l]))) for l in labels_list]))
+                  (mult * rocs[l]['auc' if 'auc' in rocs[l] else 'val'] for l in labels_list]))
 
     logfile.close()
