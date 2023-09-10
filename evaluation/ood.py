@@ -52,7 +52,7 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
                     entrop_cumul.append(entrop)
         return np.concatenate(scores_cumul), np.concatenate(entrop_cumul)
 
-    quantile_resolution = 32
+    quantile_resolution = 200
     quantile_steps = np.concatenate([np.linspace(0.0, 0.1, num=quantile_resolution, endpoint=False),
                                      np.linspace(0.1, 0.9, num=quantile_resolution, endpoint=False),
                                      np.linspace(0.9, 1.0, num=quantile_resolution + 1, endpoint=True)])
@@ -129,7 +129,7 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
         target_fpr = None
 
         for i in range(len(quantile_steps) // 2):
-            tpr = (quantile_steps[i] + 1. - quantile_steps[-(1 + i)])
+            tpr = (quantile_steps[-(1 + i) - quantile_steps[i])
             fpr = np.mean(np.logical_and(test_scores >= train_quantiles[i], test_scores <= train_quantiles[-(i + 1)]))
             if tpr > target_tpr and target_fpr is None:
                 target_fpr = fpr
