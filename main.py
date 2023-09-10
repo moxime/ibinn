@@ -57,6 +57,11 @@ elif mode.startswith('wim'):
 elif mode == 'generate':
     import evaluation.generation
     evaluation.generation.main(args)
+
+elif mode == 'results':
+    import evaluation
+    evaluation.test(args, load_json=True)
+
 else:
     print(usage)
     sys.exit(1)

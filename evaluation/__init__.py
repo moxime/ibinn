@@ -4,6 +4,8 @@ from .calibration import calibration_curve
 from .latent_space import show_samples, show_latent_space, show_real_data
 from .test_metrics import test_metrics
 
+import json
+
 import os
 
 import torch
@@ -106,7 +108,7 @@ def val_plots(fname, model, data):
     plt.close('all')
 
 
-def test(args):
+def test(args, load_json=False):
 
     output_dir = args['checkpoints']['output_dir']
     model_fname = os.path.join(output_dir, 'model.pt')
@@ -153,62 +155,69 @@ def test(args):
     except:
         print('>> Skipping Loss Curves')
 
-    print('>> Loading dataset')
-    dataset = data.Dataset(args)
-    n_classes = dataset.n_classes
+    if not load_json:
+        print('>> Loading dataset')
+        dataset = data.Dataset(args)
+        n_classes = dataset.n_classes
 
-    print('>> Constructing model')
-    if vib_model:
-        from VIB import WrapperVIB
-        inn = WrapperVIB(args)
-    else:
-        inn = GenerativeClassifier(args)
-    inn.cuda()
-
-    print('>> Loading weights')
-    # first, try to load the model with averaged batch norms.
-    # if not, average out the batch norms and re-save it.
-    try:
-        try:
-            inn.load(model_fname[:-3] + '.avg.pt')
-        except FileNotFoundError:
-            # use the first ensemble member if this is an ensemble model
-            inn.load(model_fname[:-3] + '.00.avg.pt')
-    except FileNotFoundError:
-        try:
-            inn.load(model_fname)
-        except FileNotFoundError:
-            # use the first ensemble member if this is an ensemble model
-            inn.load(model_fname[:-3] + '.00.pt')
-
-        print('>> Averaging BatchNorm')
+        print('>> Constructing model')
         if vib_model:
-            average_batch_norm_vib(inn, dataset, int(args['evaluation']['train_set_oversampling']))
+            from VIB import WrapperVIB
+            inn = WrapperVIB(args)
         else:
-            average_batch_norm(inn, dataset, int(args['evaluation']['train_set_oversampling']))
-        inn.eval()
+            inn = GenerativeClassifier(args)
 
+        inn.cuda()
+
+        print('>> Loading weights')
+        # first, try to load the model with averaged batch norms.
+        # if not, average out the batch norms and re-save it.
         try:
-            for k in list(inn.inn._buffers.keys()):
-                if 'tmp_var' in k:
-                    del inn.inn._buffers[k]
-        except AttributeError:
-            # Feed-forward nets dont have the wierd FrEIA problems, skip
-            pass
+            try:
+                inn.load(model_fname[:-3] + '.avg.pt')
+            except FileNotFoundError:
+                # use the first ensemble member if this is an ensemble model
+                inn.load(model_fname[:-3] + '.00.avg.pt')
+        except FileNotFoundError:
+            try:
+                inn.load(model_fname)
+            except FileNotFoundError:
+                # use the first ensemble member if this is an ensemble model
+                inn.load(model_fname[:-3] + '.00.pt')
 
-        inn.save(model_fname[:-3] + '.avg.pt')
-    inn.eval()
+            print('>> Averaging BatchNorm')
+            if vib_model:
+                average_batch_norm_vib(inn, dataset, int(args['evaluation']['train_set_oversampling']))
+            else:
+                average_batch_norm(inn, dataset, int(args['evaluation']['train_set_oversampling']))
+            inn.eval()
+
+            try:
+                for k in list(inn.inn._buffers.keys()):
+                    if 'tmp_var' in k:
+                        del inn.inn._buffers[k]
+            except AttributeError:
+                # Feed-forward nets dont have the wierd FrEIA problems, skip
+                pass
+
+            inn.save(model_fname[:-3] + '.avg.pt')
+        inn.eval()
 
     testset = args['data']['dataset'].lower()
 
     results_dict = {}
 
-    if eval_test_acc:
+    if load_json:
+        json_file = os.path.join(output_dir, 'results.json')
+        with open(json_file) as f:
+            results_dict = json.load(f)
+
+    if eval_test_acc and not load_json:
         print('>> Determining test accuracy')
         metrics = test_metrics(inn, dataset, args)
         results_dict['test_metrics'] = {testset: metrics}
 
-    if eval_calibration:
+    if eval_calibration and not load_json:
         print('>> Plotting calibration curve')
         ece, mce, ice, ovc = calibration_curve(inn, dataset)
         results_dict['calib_err'] = {testset: {'ece': float(100. * ece),
@@ -217,7 +226,7 @@ def test(args):
                                                'oce': float(ovc),
                                                'gme': float(100. * (ece * mce * ice)**0.333333333)}}
 
-    if not vib_model and not inn.feed_forward:
+    if not load_json and not vib_model and not inn.feed_forward:
         if eval_sample_generation:
             print('>> Plotting generated samples')
             n_samples = 20
@@ -232,7 +241,7 @@ def test(args):
             print('>> Plotting latent space')
             show_latent_space(inn, dataset, test_set=True)
 
-    if eval_ood_detection:
+    if eval_ood_detection and not load_json:
         print('>> Determining outlier AUC')
         roc_1t, roc_2t, roc_tt, entrop, delta_entrop = outlier_detection(inn, dataset, args, test_set=True)
 
@@ -253,17 +262,23 @@ def test(args):
 
             results_dict[test_type] = rocs
 
-    print('>> Saving figures')
-    with PdfPages(fig_fname) as pp:
-        figs = [plt.figure(n) for n in plt.get_fignums()]
-        for fig in figs:
-            fig.savefig(pp, format='pdf')
+    if not load_json:
+        print('>> Saving figures')
+        with PdfPages(fig_fname) as pp:
+            figs = [plt.figure(n) for n in plt.get_fignums()]
+            for fig in figs:
+                fig.savefig(pp, format='pdf')
 
     # can only save latex tables etc. if all the quantitative experiments were run
     if eval_test_acc and eval_calibration and eval_ood_detection:
         output.to_json(results_dict, output_dir)
         output.to_console(results_dict, output_dir)
-        # output.to_csv(results_dict, output_dir)
+        print(results_dict)
+
+        try:
+            output.to_csv(results_dict, output_dir)
+        except ModuleNotFoundError:
+            print('Module not found to create csv')
         print('>> Generating data output files')
         # output.to_latex_table_row(results_dict, output_dir,
         #                           name=args['checkpoints']['base_name'],
@@ -272,5 +287,3 @@ def test(args):
         #                           italic_entrop=False,
         #                           blank_bitspdim=(inn.feed_forward or inn.feed_forward_revnet),
         #                           blank_classif=(eval(args['training']['beta_IB']) == 0))
-
-        print(results_dict)

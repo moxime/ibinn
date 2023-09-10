@@ -84,6 +84,8 @@ def to_df(results_dict):
     df.columns.rename(['method', 'measures'], inplace=True)
     df.index.rename('set', inplace=True)
     df = df.unstack('set').to_frame().T.reorder_levels(['set', 'method', 'measures'], axis=1)
+    df.index = ['ibinn']
+    df.index.rename('type', inplace=True)
     return df.reindex(columns=sorted(df.columns))
 
 
