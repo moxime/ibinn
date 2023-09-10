@@ -130,7 +130,7 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
 
         for i in range(len(quantile_steps) // 2):
             i_ = len(quantile_steps) // 2 - i
-            tpr = (quantile_steps[i_] - quantile_steps[i_ - 1])
+            tpr = (quantile_steps[-i_] - quantile_steps[i_ - 1])
             fpr = np.mean(np.logical_and(test_scores >= train_quantiles[i_ - 1], test_scores <= train_quantiles[-i_]))
             if tpr > target_tpr and target_fpr is None:
                 target_fpr = fpr
