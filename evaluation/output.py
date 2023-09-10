@@ -72,7 +72,8 @@ def to_latex_table_row(results_dict, out_dir, name="",
 
 
 def to_csv(results_dict, out_dir):
-    pass
+    df = to_df(results_dict)
+    df.to_csv(join(out_dir, 'results.csv'))
 
 
 def to_df(results_dict):
@@ -84,9 +85,6 @@ def to_df(results_dict):
     df.index.rename('set', inplace=True)
     df = df.unstack('set').to_frame().T.reorder_levels(['set', 'method', 'measures'], axis=1)
     return df.reindex(columns=sorted(df.columns))
-
-    df = pd.concat({k: pd.DataFrame(results_dict[k]).T for k in results_dict if 'ood' not in k}, axis=1)
-    return df
 
 
 def to_csv_row(results_dict, out_dir):
