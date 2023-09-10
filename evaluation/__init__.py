@@ -263,7 +263,7 @@ def test(args):
     if eval_test_acc and eval_calibration and eval_ood_detection:
         output.to_json(results_dict, output_dir)
         output.to_console(results_dict, output_dir)
-        output.to_csv(results_dict, output_dir)
+        # output.to_csv(results_dict, output_dir)
         print('>> Generating data output files')
         # output.to_latex_table_row(results_dict, output_dir,
         #                           name=args['checkpoints']['base_name'],

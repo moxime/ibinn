@@ -147,8 +147,11 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
     aucs_typicality = {}
     delta_entropy = {}
     for label, score in scores_all.items():
+        print('{} 1T'.format(label))
         aucs_one_tailed[label] = auc(score, scores_ID, label)
+        print('{} 2T'.format(label))
         aucs_two_tailed[label] = auc_quantiles(score, quantiles_ID, quantile_steps)
+        print('{} TT'.format(label))
         aucs_typicality[label] = auc(np.abs(score - typical_ID), typicality_scores_ID)
         delta_entropy[label] = {'val': entrop_all[label]['val'] - entrop_ID}
 
