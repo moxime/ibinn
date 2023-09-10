@@ -109,7 +109,7 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
         for x in xjoint:
             tpr = np.mean(train_scores < x)
             fpr = np.mean(test_scores < x)
-            if tpr > target_tpr and target_fpr is None:
+            if tpr >= target_tpr and target_fpr is None:
                 target_fpr = fpr
                 print('{:.1%}: {:.1%}'.format(tpr, target_fpr))
             roc.append((fpr, tpr))
@@ -132,9 +132,9 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
             i_ = len(quantile_steps) // 2 - i
             tpr = (quantile_steps[-i_] - quantile_steps[i_ - 1])
             fpr = np.mean(np.logical_and(test_scores >= train_quantiles[i_ - 1], test_scores <= train_quantiles[-i_]))
-            if tpr > target_tpr and target_fpr is None:
+            if tpr >= target_tpr and target_fpr is None:
                 target_fpr = fpr
-            print('{:.1%}: {:.1%}'.format(tpr, fpr))
+                print('{:.1%}: {:.1%}'.format(tpr, fpr))
 
             roc.append((fpr, tpr))
         roc.append((1., 1.))
