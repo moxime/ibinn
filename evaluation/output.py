@@ -131,7 +131,7 @@ def to_console(results_dict, out_dir):
         if '_ent' in test_type:
             mult = 1.
         else:
-            mult = 100.
+            mult = 1.
 
         log_write('{:9s} '.format(test_type.upper()) +
                   ''.join(['{:-16.4f}'.format(mult * rocs[l]['auc' if 'auc' in rocs[l] else 'val']) for l in labels_list]))

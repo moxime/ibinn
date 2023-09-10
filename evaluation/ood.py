@@ -121,7 +121,7 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
         plt.figure(fig_roc.number)
         plt.plot(roc[0], roc[1], label=label + ' (%.4f AUC)' % (auc))
 
-        return {'auc': auc, 'fpr': target_fpr}
+        return {'auc': 100 * auc, 'fpr': 100 * target_fpr}
 
     def auc_quantiles(test_scores, train_quantiles, quantile_steps):
 
@@ -140,7 +140,7 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
 
         roc = np.array(roc).T
         auc = np.trapz(roc[1], x=roc[0])
-        return {'auc': auc, 'fpr': target_fpr}
+        return {'auc': 100 * auc, 'fpr': 100 * target_fpr}
 
     aucs_one_tailed = {}
     aucs_two_tailed = {}
