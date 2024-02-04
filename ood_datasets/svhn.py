@@ -7,6 +7,7 @@ import torchvision.transforms as T
 import torchvision.transforms.functional as F
 import torchvision.datasets
 
+
 class Augmentor():
     def __init__(self, deterministic, noise_amplitde, beta, gamma, tanh, ch_pad=0, ch_pad_sig=0):
         self.deterministic = deterministic
@@ -28,7 +29,7 @@ class Augmentor():
 
         if self.tanh:
             x.clamp_(min=-(1 - 1e-7), max=(1 - 1e-7))
-            x = 0.5 * torch.log((1+x) / (1-x))
+            x = 0.5 * torch.log((1 + x) / (1 - x))
 
         if self.ch_pad:
             padding = torch.cat([x] * int(np.ceil(float(self.ch_pad) / x.shape[0])), dim=0)[:self.ch_pad]
@@ -47,6 +48,7 @@ class Augmentor():
 
         return x / self.gamma.to(x.device) + self.beta.to(x.device)
 
+
 class Dataset():
 
     def __init__(self, args):
@@ -62,11 +64,18 @@ class Dataset():
         if self.dataset == 'MNIST':
             beta = 0.5
             gamma = 2.
-        else:
+        elif self.dataset.startswith('CIFAR10'):
             beta = torch.Tensor((0.4914, 0.4822, 0.4465)).view(-1, 1, 1)
             gamma = 1. / torch.Tensor((0.247, 0.243, 0.261)).view(-1, 1, 1)
 
-        self.test_augmentor =  Augmentor(True,  0.,    beta, gamma, tanh, channel_pad, channel_pad_sigma)
+        elif self.dataset == 'SVHN':
+            beta = torch.Tensor((0.4377, 0.4438, 0.4728)).view(-1, 1, 1)
+            gamma = 1. / torch.Tensor((0.198, 0.201, 0.197)).view(-1, 1, 1)
+
+        else:
+            raise ValueError('{} not supported'.format(self.dataset))
+
+        self.test_augmentor = Augmentor(True, 0., beta, gamma, tanh, channel_pad, channel_pad_sigma)
         self.transform = T.Compose([T.ToTensor(), self.test_augmentor])
 
         self.dims = (3 + channel_pad, 32, 32)
@@ -77,10 +86,10 @@ class Dataset():
         dataset_class = torchvision.datasets.SVHN
 
         self.test_data = dataset_class(data_dir, split='test', download=True,
-                                               transform=T.Compose([T.ToTensor(), self.test_augmentor]))
+                                       transform=T.Compose([T.ToTensor(), self.test_augmentor]))
 
-        self.test_loader   = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False,
-                                   num_workers=2, pin_memory=True, drop_last=True)
+        self.test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False,
+                                      num_workers=2, pin_memory=True, drop_last=True)
 
     def de_augment(self, x):
         return self.test_augmentor.de_augment(x)

@@ -33,7 +33,7 @@ class Augmentor():
 
         if self.tanh:
             x.clamp_(min=-(1 - 1e-7), max=(1 - 1e-7))
-            x = 0.5 * torch.log((1+x) / (1-x))
+            x = 0.5 * torch.log((1 + x) / (1 - x))
 
         if self.ch_pad:
             padding = torch.cat([x] * int(np.ceil(float(self.ch_pad) / x.shape[0])), dim=0)[:self.ch_pad]
@@ -68,11 +68,18 @@ class Dataset():
         if self.dataset == 'MNIST':
             beta = 0.5
             gamma = 2.
-        else:
+        elif self.dataset.startswith('CIFAR10'):
             beta = torch.Tensor((0.4914, 0.4822, 0.4465)).view(-1, 1, 1)
             gamma = 1. / torch.Tensor((0.247, 0.243, 0.261)).view(-1, 1, 1)
 
-        self.test_augmentor = Augmentor(True,  0.,    beta, gamma, tanh, channel_pad, channel_pad_sigma)
+        elif self.dataset == 'SVHN':
+            beta = torch.Tensor((0.4377, 0.4438, 0.4728)).view(-1, 1, 1)
+            gamma = 1. / torch.Tensor((0.198, 0.201, 0.197)).view(-1, 1, 1)
+
+        else:
+            raise ValueError('{} not supported'.format(self.dataset))
+
+        self.test_augmentor = Augmentor(True, 0., beta, gamma, tanh, channel_pad, channel_pad_sigma)
         self.transform = T.Compose([T.ToTensor(), self.test_augmentor])
 
         self.dims = (3 + channel_pad, 32, 32)
@@ -104,7 +111,7 @@ def cifar_flipped(args):
 
 
 def cifar_hue(args, alpha):
-    return Dataset(args, [lambda x: F.adjust_hue(x, alpha/2), T.ToTensor()]).test_loader
+    return Dataset(args, [lambda x: F.adjust_hue(x, alpha / 2), T.ToTensor()]).test_loader
 
 
 def cifar_rgb_rotation(args, alpha):
@@ -149,14 +156,14 @@ if __name__ == '__main__':
     w = 1
     h = 1
     dh = 1
-    plt.figure(figsize=(2*w, 2*h))
+    plt.figure(figsize=(2 * w, 2 * h))
     for i, a in enumerate(np.linspace(0, 1, w)):
         loader = cifar_rgb_rotation(default_args, a)
         for x, y in loader:
             x = default_augment.de_augment(x)
             for j in range(h):
-                plt.subplot(h, w, 1 + w*j + i)
-                plt.imshow(x[j+dh].numpy().transpose((1, 2, 0)))
+                plt.subplot(h, w, 1 + w * j + i)
+                plt.imshow(x[j + dh].numpy().transpose((1, 2, 0)))
                 plt.xticks([])
                 plt.yticks([])
             break

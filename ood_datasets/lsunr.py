@@ -64,9 +64,16 @@ class Dataset():
         if self.dataset == 'MNIST':
             beta = 0.5
             gamma = 2.
+        elif self.dataset.startswith('CIFAR10'):
+            beta = torch.Tensor((0.4914, 0.4822, 0.4465)).view(-1, 1, 1)
+            gamma = 1. / torch.Tensor((0.247, 0.243, 0.261)).view(-1, 1, 1)
+
+        elif self.dataset == 'SVHN':
+            beta = torch.Tensor((0.4377, 0.4438, 0.4728)).view(-1, 1, 1)
+            gamma = 1. / torch.Tensor((0.198, 0.201, 0.197)).view(-1, 1, 1)
+
         else:
-            beta = torch.Tensor((0.511, 0.470, 0.432)).view(-1, 1, 1)
-            gamma = 1. / torch.Tensor((0.273, 0.274, 0.290)).view(-1, 1, 1)
+            raise ValueError('{} not supported'.format(self.dataset))
 
         self.test_augmentor = Augmentor(True, 0., beta, gamma, tanh, channel_pad, channel_pad_sigma)
         self.transform = T.Compose([T.ToTensor(),

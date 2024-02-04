@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as T
 import torchvision.datasets
 
+
 class StandardTransform(object):
     def __init__(self, transform=None, target_transform=None):
         self.transform = transform
@@ -37,6 +38,7 @@ class StandardTransform(object):
 
         return '\n'.join(body)
 
+
 class LabelAugmentor():
     def __init__(self, mapping=list(range(10))):
         self.mapping = mapping
@@ -44,16 +46,17 @@ class LabelAugmentor():
     def __call__(self, l):
         return int(self.mapping[l])
 
+
 class Augmentor():
     def __init__(self, deterministic, noise_amplitde, uniform_dequantize, beta, gamma, tanh, ch_pad=0, ch_pad_sig=0):
-        self.deterministic      = deterministic
-        self.sigma_noise        = noise_amplitde
+        self.deterministic = deterministic
+        self.sigma_noise = noise_amplitde
         self.uniform_dequantize = uniform_dequantize
-        self.beta               = beta
-        self.gamma              = gamma
-        self.tanh               = tanh
-        self.ch_pad             = ch_pad
-        self.ch_pad_sig         = ch_pad_sig
+        self.beta = beta
+        self.gamma = gamma
+        self.tanh = tanh
+        self.ch_pad = ch_pad
+        self.ch_pad_sig = ch_pad_sig
         assert ch_pad_sig <= 1., 'Padding sigma must be between 0 and 1.'
 
     def __call__(self, x):
@@ -67,7 +70,7 @@ class Augmentor():
 
         if self.tanh:
             x.clamp_(min=-(1 - 1e-7), max=(1 - 1e-7))
-            x = 0.5 * torch.log((1+x) / (1-x))
+            x = 0.5 * torch.log((1 + x) / (1 - x))
 
         if self.ch_pad:
             padding = torch.cat([x] * int(np.ceil(float(self.ch_pad) / x.shape[0])), dim=0)[:self.ch_pad]
@@ -89,28 +92,36 @@ class Augmentor():
         else:
             return x / self.gamma.to(x.device) + self.beta.to(x.device)
 
+
 class Dataset():
 
     def __init__(self, args):
 
-        self.dataset      = args['data']['dataset']
-        self.batch_size   = eval(args['data']['batch_size'])
-        tanh              = eval(args['data']['tanh_augmentation'])
-        self.sigma        = eval(args['data']['noise_amplitde'])
-        unif              = eval(args['data']['dequantize_uniform'])
-        label_smoothing   = eval(args['data']['label_smoothing'])
-        channel_pad       = eval(args['data']['pad_noise_channels'])
+        self.dataset = args['data']['dataset']
+        self.batch_size = eval(args['data']['batch_size'])
+        tanh = eval(args['data']['tanh_augmentation'])
+        self.sigma = eval(args['data']['noise_amplitde'])
+        unif = eval(args['data']['dequantize_uniform'])
+        label_smoothing = eval(args['data']['label_smoothing'])
+        channel_pad = eval(args['data']['pad_noise_channels'])
         channel_pad_sigma = eval(args['data']['pad_noise_std'])
 
         if self.dataset == 'MNIST':
             beta = 0.5
             gamma = 2.
-        else:
+        elif self.dataset.startswith('CIFAR10'):
             beta = torch.Tensor((0.4914, 0.4822, 0.4465)).view(-1, 1, 1)
             gamma = 1. / torch.Tensor((0.247, 0.243, 0.261)).view(-1, 1, 1)
 
+        elif self.dataset == 'SVHN':
+            beta = torch.Tensor((0.4377, 0.4438, 0.4728)).view(-1, 1, 1)
+            gamma = 1. / torch.Tensor((0.198, 0.201, 0.197)).view(-1, 1, 1)
+
+        else:
+            raise ValueError('{} not supported'.format(self.dataset))
+
         self.train_augmentor = Augmentor(False, self.sigma, unif, beta, gamma, tanh, channel_pad, channel_pad_sigma)
-        self.test_augmentor =  Augmentor(True,  0.,         unif, beta, gamma, tanh, channel_pad, channel_pad_sigma)
+        self.test_augmentor = Augmentor(True, 0., unif, beta, gamma, tanh, channel_pad, channel_pad_sigma)
         self.transform = T.Compose([T.ToTensor(), self.test_augmentor])
 
         if self.dataset == 'MNIST':
@@ -124,11 +135,11 @@ class Dataset():
             data_dir = 'mnist_data'
 
             self.test_data = torchvision.datasets.MNIST(data_dir, train=False, download=True,
-                                                   transform=T.Compose([T.ToTensor(), self.test_augmentor]),
-                                                   target_transform=self.label_augment)
+                                                        transform=T.Compose([T.ToTensor(), self.test_augmentor]),
+                                                        target_transform=self.label_augment)
             self.train_data = torchvision.datasets.MNIST(data_dir, train=True, download=True,
-                                                    transform=T.Compose([T.ToTensor(), self.train_augmentor]),
-                                                    target_transform=self.label_augment)
+                                                         transform=T.Compose([T.ToTensor(), self.train_augmentor]),
+                                                         target_transform=self.label_augment)
         elif self.dataset in ['CIFAR10', 'CIFAR100']:
             self.dims = (3 + channel_pad, 32, 32)
             self.channels = 3 + channel_pad
@@ -146,31 +157,54 @@ class Dataset():
             self.label_augment = LabelAugmentor(self.label_mapping)
 
             self.test_data = dataset_class(data_dir, train=False, download=True,
-                                                   transform=T.Compose([T.ToTensor(), self.test_augmentor]),
-                                                   target_transform=self.label_augment)
+                                           transform=T.Compose([T.ToTensor(), self.test_augmentor]),
+                                           target_transform=self.label_augment)
             self.train_data = dataset_class(data_dir, train=True, download=True,
-                                                   transform=T.Compose([T.RandomHorizontalFlip(),
-                                                                       T.ColorJitter(0.1, 0.1, 0.05),
-                                                                       T.Pad(8, padding_mode='edge'),
-                                                                       T.RandomRotation(12),
-                                                                       T.CenterCrop(36),
-                                                                       T.RandomCrop(32),
-                                                                       T.ToTensor(),
-                                                                       self.train_augmentor]),
-                                                    target_transform=self.label_augment)
+                                            transform=T.Compose([T.RandomHorizontalFlip(),
+                                                                 T.ColorJitter(0.1, 0.1, 0.05),
+                                                                 T.Pad(8, padding_mode='edge'),
+                                                                 T.RandomRotation(12),
+                                                                 T.CenterCrop(36),
+                                                                 T.RandomCrop(32),
+                                                                 T.ToTensor(),
+                                                                 self.train_augmentor]),
+                                            target_transform=self.label_augment)
+
+        elif self.dataset == 'SVHN':
+            self.dims = (3 + channel_pad, 32, 32)
+            self.channels = 3 + channel_pad
+            data_dir = 'svhn_data'
+            self.n_classes = 10
+            dataset_class = torchvision.datasets.SVHN
+            self.label_mapping = list(range(self.n_classes))
+            self.label_augment = LabelAugmentor(self.label_mapping)
+
+            self.test_data = dataset_class(data_dir, train=False, download=True,
+                                           transform=T.Compose([T.ToTensor(), self.test_augmentor]),
+                                           target_transform=self.label_augment)
+            self.train_data = dataset_class(data_dir, train=True, download=True,
+                                            transform=T.Compose([T.ColorJitter(0.1, 0.1, 0.05),
+                                                                 T.Pad(8, padding_mode='edge'),
+                                                                 T.RandomRotation(12),
+                                                                 T.CenterCrop(36),
+                                                                 T.RandomCrop(32),
+                                                                 T.ToTensor(),
+                                                                 self.train_augmentor]),
+                                            target_transform=self.label_augment)
 
         else:
             raise ValueError(f"what is this dataset, {args['data']['dataset']}?")
 
-        self.train_data, self.val_data = torch.utils.data.random_split(self.train_data, (len(self.train_data) - 1024, 1024))
+        self.train_data, self.val_data = torch.utils.data.random_split(
+            self.train_data, (len(self.train_data) - 1024, 1024))
 
         self.val_x = torch.stack([x[0] for x in self.val_data], dim=0).cuda()
         self.val_y = self.onehot(torch.LongTensor([x[1] for x in self.val_data]).cuda(), label_smoothing)
 
-        self.train_loader  = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True,
-                                   num_workers=6, pin_memory=True, drop_last=True)
-        self.test_loader   = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False,
-                                   num_workers=4, pin_memory=True, drop_last=True)
+        self.train_loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True,
+                                       num_workers=6, pin_memory=True, drop_last=True)
+        self.test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False,
+                                      num_workers=4, pin_memory=True, drop_last=True)
 
     def show_data_hist(self):
         x = self.val_x.cpu().numpy()
