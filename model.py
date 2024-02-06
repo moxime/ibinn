@@ -27,14 +27,14 @@ class GenerativeClassifier(nn.Module):
             self.input_channels = 1
             self.ndim_tot = int(np.prod(self.dims))
             self.n_classes = 10
-        elif self.dataset in ['CIFAR10', 'CIFAR100']:
+        elif self.dataset in ['CIFAR10', 'CIFAR100', 'SVHN']:
             self.dims = (3 + self.ch_pad, 32, 32)
             self.input_channels = 3 + self.ch_pad
             self.ndim_tot = int(np.prod(self.dims))
-            if self.dataset == 'CIFAR10':
-                self.n_classes = 10
-            else:
+            if self.dataset == 'CIFAR100':
                 self.n_classes = 100
+            else:
+                self.n_classes = 10
         else:
             raise ValueError(f"what is this dataset, {args['data']['dataset']}?")
 
@@ -52,7 +52,7 @@ class GenerativeClassifier(nn.Module):
         self.mu_empirical = eval(self.args['training']['empirical_mu'])
 
         for k in range(mu_populate_dims // self.n_classes):
-            self.mu.data[0, :, self.n_classes * k: self.n_classes * (k+1)] = init_scale * torch.eye(self.n_classes)
+            self.mu.data[0, :, self.n_classes * k: self.n_classes * (k + 1)] = init_scale * torch.eye(self.n_classes)
 
         self.phi = nn.Parameter(torch.zeros(self.n_classes))
 
@@ -153,7 +153,7 @@ class GenerativeClassifier(nn.Module):
         else:
             zz = self.cluster_distances(z, wim=wim)
 
-        losses = {'L_x_tr':    (- torch.logsumexp(- 0.5 * zz + log_wy, dim=1) - jac) / self.ndim_tot,
+        losses = {'L_x_tr': (- torch.logsumexp(- 0.5 * zz + log_wy, dim=1) - jac) / self.ndim_tot,
                   'logits_tr': - 0.5 * zz}
 
         log_wy = log_wy.detach()
@@ -207,11 +207,11 @@ class GenerativeClassifier(nn.Module):
         if is_train:
             self.inn.train()
 
-        return {'L_x_val':      l_x,
-                'L_cNLL_val':   class_nll,
-                'logits_val':   logits,
-                'L_y_val':      l_y,
-                'acc_val':      acc,
+        return {'L_x_val': l_x,
+                'L_cNLL_val': class_nll,
+                'logits_val': logits,
+                'L_y_val': l_y,
+                'acc_val': acc,
                 'delta_mu_val': mu_dist}
 
     def reset_mu(self, dataset):
@@ -241,7 +241,7 @@ class GenerativeClassifier(nn.Module):
 
     def save(self, fname):
         torch.save({'inn': self.inn.state_dict(),
-                    'mu':  self.mu,
+                    'mu': self.mu,
                     'phi': self.phi,
                     'opt': self.optimizer.state_dict()}, fname)
         print('>> Model saved in', fname)
