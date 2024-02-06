@@ -179,10 +179,10 @@ class Dataset():
             self.label_mapping = list(range(self.n_classes))
             self.label_augment = LabelAugmentor(self.label_mapping)
 
-            self.test_data = dataset_class(data_dir, train=False, download=True,
+            self.test_data = dataset_class(data_dir, split='test', download=True,
                                            transform=T.Compose([T.ToTensor(), self.test_augmentor]),
                                            target_transform=self.label_augment)
-            self.train_data = dataset_class(data_dir, train=True, download=True,
+            self.train_data = dataset_class(data_dir, split='train', download=True,
                                             transform=T.Compose([T.ColorJitter(0.1, 0.1, 0.05),
                                                                  T.Pad(8, padding_mode='edge'),
                                                                  T.RandomRotation(12),
