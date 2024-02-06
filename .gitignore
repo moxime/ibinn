@@ -7,3 +7,5 @@ cifar_data
 cifar100_data
 mnist_data
 svhn_data
+lsun_data
+_cache_lsun*
