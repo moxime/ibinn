@@ -1,4 +1,5 @@
-output/*
+output/*/*
+!output/*/results.json
 figures/*
 **/__pycache__
 __pycache__
