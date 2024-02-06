@@ -89,8 +89,7 @@ class Dataset():
 
         self.test_data = dataset_class(data_dir, classes='val',
                                        transform=T.Compose([T.ToTensor(),
-                                                            T.CenterCrop(256),
-                                                            T.Resize(32),
+                                                            T.CenterCrop(32),
                                                             self.test_augmentor]))
 
         self.test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False,
