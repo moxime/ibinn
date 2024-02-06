@@ -19,6 +19,9 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
     # import ood_datasets.quickdraw
     import ood_datasets.svhn
     import ood_datasets.lsunr
+    import ood_datasets.lsunc
+    import ood_datasets.cifar100
+    import ood_datasets.const_noise
 
     ensemble = int(args['evaluation']['ensemble_members'])
     inn_ensemble = [inn_model]
@@ -78,8 +81,17 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
     if 'lsunr' in oodsets:
         generators.append((ood_datasets.lsunr.lsunr(inn_model.args), 'lsunr'))
 
+    if 'lsunc' in oodsets:
+        generators.append((ood_datasets.lsunc.lsunc(inn_model.args), 'lsunc'))
+
     if 'cifar100' in oodsets:
         generators.append((ood_datasets.cifar100.cifar100(inn_model.args), 'cifar100'))
+
+    if 'const' in oodsets:
+        generators.append((ood_datasets.const_noise.const32(inn_model.args), 'const32'))
+
+    if 'noise' in oodsets:
+        generators.append((ood_datasets.const_noise.uniform32(inn_model.args), 'uniform32'))
 
     for gen, label in generators:
         print(f'>> Computing OoD score for {label}')
