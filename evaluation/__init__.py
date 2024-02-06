@@ -277,8 +277,8 @@ def test(args, load_json=False):
 
         try:
             output.to_csv(results_dict, output_dir)
-        except ModuleNotFoundError:
-            print('Module not found to create csv')
+        except ModuleNotFoundError as e:
+            print('Module not found to create csv {}'.format(e))
         print('>> Generating data output files')
         # output.to_latex_table_row(results_dict, output_dir,
         #                           name=args['checkpoints']['base_name'],
