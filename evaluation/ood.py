@@ -18,6 +18,7 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
     # import ood_datasets.cifar
     # import ood_datasets.quickdraw
     import ood_datasets.svhn
+    import ood_datasets.cifar
     import ood_datasets.lsunr
     import ood_datasets.lsunc
     import ood_datasets.cifar100
@@ -77,6 +78,9 @@ def outlier_detection(inn_model, data, args, test_set=False, target_tpr=0.95):
 
     if 'svhn' in oodsets:
         generators.append((ood_datasets.svhn.svhn(inn_model.args), 'svhn'))
+
+    if 'cifar10' in oodsets:
+        generators.append((ood_datasets.cifar.cifar10(inn_model.args), 'cifar10'))
 
     if 'lsunr' in oodsets:
         generators.append((ood_datasets.lsunr.lsunr(inn_model.args), 'lsunr'))

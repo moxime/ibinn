@@ -85,19 +85,12 @@ class Dataset():
         self.dims = (3 + channel_pad, 32, 32)
         self.channels = 3 + channel_pad
 
-        if self.dataset == 'CIFAR10':
-            data_dir = 'cifar_data'
-            self.n_classes = 10
-            dataset_class = torchvision.datasets.CIFAR10
-        elif self.dataset == 'CIFAR100':
-            data_dir = 'cifar100_data'
-            self.n_classes = 100
-            dataset_class = torchvision.datasets.CIFAR100
-        else:
-            raise ValueError("Only CIFAR10 and CIFAR100 supported for OoD datasets")
+        self.n_classes = 10
+        dataset_class = torchvision.datasets.CIFAR10
 
+        data_dir = 'cifar_data'
         self.test_data = dataset_class(data_dir, train=False, download=True,
-                                       transform=T.Compose(extra_transforms + [self.test_augmentor]))
+                                       transform=T.Compose([T.ToTensor(), self.test_augmentor]))
 
         self.test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False,
                                       num_workers=2, pin_memory=True, drop_last=True)
@@ -107,6 +100,10 @@ class Dataset():
 
     def augment(self, x):
         return self.test_augmentor(x)
+
+
+def cifar10(args):
+    return Dataset(args).test_loader
 
 
 def cifar_flipped(args):
