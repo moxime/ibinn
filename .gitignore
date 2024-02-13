@@ -1,5 +1,6 @@
 output/*/*
 !output/*/results.json
+!output/*/results.csv
 figures/*
 **/__pycache__
 __pycache__
